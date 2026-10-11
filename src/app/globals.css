@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #0e0d0c;
+  --color-panel: #181614;
+  --color-panel-2: #221f1c;
+  --color-line: #34302b;
+  --color-bone: #ece6db;
+  --color-muted: #a39b8f;
+  --color-blood: #c8102e;
+  --color-blood-dim: #7a0a1c;
+  --color-gold: #d4a84b;
+  --color-ok: #4f9d69;
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-bone);
+  font-family: var(--font-sans);
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-line bg-panel p-4 sm:p-5;
+  }
+  .h-display {
+    @apply font-display tracking-tight;
+  }
+  .label {
+    @apply mb-1 block text-xs font-semibold uppercase tracking-wider text-muted;
+  }
+  .input {
+    @apply w-full rounded-lg border border-line bg-ink px-3 py-2 text-bone placeholder:text-muted/60 focus:border-blood focus:outline-none;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-panel-2 px-4 py-2 text-sm font-semibold text-bone transition hover:border-muted disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply border-blood bg-blood text-white hover:bg-blood-dim;
+  }
+  .btn-danger {
+    @apply border-blood-dim text-blood hover:bg-blood-dim hover:text-white;
+  }
+  .btn-sm {
+    @apply px-2.5 py-1 text-xs;
+  }
+  .pill {
+    @apply inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold;
+  }
+  .table {
+    @apply w-full text-left text-sm;
+  }
+  .table th {
+    @apply border-b border-line pb-2 text-xs font-semibold uppercase tracking-wider text-muted;
+  }
+  .table td {
+    @apply border-b border-line/60 py-2 pr-2 align-top;
+  }
+  .prose-rules {
+    @apply space-y-3 leading-relaxed;
+  }
+  .prose-rules h1, .prose-rules h2, .prose-rules h3 {
+    @apply font-display text-xl text-bone;
+  }
+  .prose-rules ul {
+    @apply list-disc space-y-1 pl-6;
+  }
+  .prose-rules ol {
+    @apply list-decimal space-y-1 pl-6;
+  }
+  .prose-rules a {
+    @apply text-gold underline;
+  }
+}

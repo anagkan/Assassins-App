@@ -1,0 +1,106 @@
+import { createHash, randomBytes } from "node:crypto";
+import bcrypt from "bcryptjs";
+import { eq, lt } from "drizzle-orm";
+import type { DB } from "@/db";
+import { sessions, users, type User } from "@/db/schema";
+import { GameError, audit, randomCode } from "./game";
+
+export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const USERNAME_RE = /^[a-z0-9_.-]{3,32}$/;
+
+export function normalizeUsername(u: string) {
+  return u.trim().toLowerCase();
+}
+
+export function validatePassword(pw: string) {
+  if (pw.length < 8) throw new GameError("Password must be at least 8 characters.");
+  if (pw.length > 200) throw new GameError("Password is too long.");
+}
+
+export async function createUser(
+  db: DB,
+  input: { username: string; displayName: string; password: string; isAdmin?: boolean },
+): Promise<User> {
+  const username = normalizeUsername(input.username);
+  if (!USERNAME_RE.test(username)) {
+    throw new GameError("Username must be 3–32 characters: letters, numbers, dot, dash or underscore.");
+  }
+  const displayName = input.displayName.trim().slice(0, 60);
+  if (!displayName) throw new GameError("Please enter your name.");
+  validatePassword(input.password);
+  if (db.select().from(users).where(eq(users.username, username)).get()) {
+    throw new GameError("That username is taken.");
+  }
+  const passwordHash = await bcrypt.hash(input.password, 12);
+  return db
+    .insert(users)
+    .values({ username, displayName, passwordHash, isAdmin: input.isAdmin ?? false, createdAt: Date.now() })
+    .returning()
+    .get();
+}
+
+let dummyHash: string | undefined;
+
+export async function verifyLogin(db: DB, username: string, password: string): Promise<User | null> {
+  const user = db.select().from(users).where(eq(users.username, normalizeUsername(username))).get();
+  // Compare against a dummy hash when the user doesn't exist to keep timing similar.
+  dummyHash ??= bcrypt.hashSync("not-a-real-password", 12);
+  const ok = await bcrypt.compare(password, user?.passwordHash ?? dummyHash);
+  return ok && user ? user : null;
+}
+
+export async function setPassword(db: DB, userId: number, password: string, mustChange = false) {
+  validatePassword(password);
+  const passwordHash = await bcrypt.hash(password, 12);
+  db.update(users).set({ passwordHash, mustChangePassword: mustChange }).where(eq(users.id, userId)).run();
+  // Log out every other session for this user.
+  db.delete(sessions).where(eq(sessions.userId, userId)).run();
+}
+
+/** Admin reset: returns a temporary password the player must change on next login. */
+export async function resetPassword(db: DB, actorId: number, userId: number): Promise<string> {
+  const temp = `${randomCode(4)}-${randomCode(4)}`.toLowerCase();
+  await setPassword(db, userId, temp, true);
+  audit(db, actorId, null, "admin.reset_password", { userId });
+  return temp;
+}
+
+const hashToken = (t: string) => createHash("sha256").update(t).digest("hex");
+
+export function createSession(db: DB, userId: number): { token: string; expiresAt: number } {
+  const token = randomBytes(32).toString("base64url");
+  const expiresAt = Date.now() + SESSION_TTL_MS;
+  db.insert(sessions).values({ id: hashToken(token), userId, expiresAt }).run();
+  db.delete(sessions).where(lt(sessions.expiresAt, Date.now())).run();
+  return { token, expiresAt };
+}
+
+export function userForToken(db: DB, token: string): User | null {
+  const row = db
+    .select({ user: users, expiresAt: sessions.expiresAt })
+    .from(sessions)
+    .innerJoin(users, eq(users.id, sessions.userId))
+    .where(eq(sessions.id, hashToken(token)))
+    .get();
+  if (!row || row.expiresAt < Date.now()) return null;
+  return row.user;
+}
+
+export function deleteSession(db: DB, token: string) {
+  db.delete(sessions).where(eq(sessions.id, hashToken(token))).run();
+}
+
+/** Create the first admin from env vars if no admin exists yet. */
+export async function bootstrapAdmin(db: DB) {
+  const username = process.env.ADMIN_USERNAME;
+  const password = process.env.ADMIN_PASSWORD;
+  if (!username || !password) return;
+  if (db.select().from(users).where(eq(users.isAdmin, true)).get()) return;
+  const existing = db.select().from(users).where(eq(users.username, normalizeUsername(username))).get();
+  if (existing) {
+    db.update(users).set({ isAdmin: true }).where(eq(users.id, existing.id)).run();
+  } else {
+    await createUser(db, { username, displayName: "Admin", password, isAdmin: true });
+  }
+  console.log(`[assassins] Bootstrapped admin account "${username}".`);
+}

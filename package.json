@@ -1,0 +1,46 @@
+{
+  "name": "colonial-assassins",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "seed": "tsx scripts/seed.ts",
+    "create-admin": "tsx scripts/create-admin.ts",
+    "typecheck": "tsc --noEmit",
+    "build:scripts": "esbuild scripts/create-admin.ts scripts/backup.ts --bundle --platform=node --format=cjs --target=node22 --external:better-sqlite3 --outdir=dist --out-extension:.js=.cjs",
+    "backup": "tsx scripts/backup.ts"
+  },
+  "dependencies": {
+    "bcryptjs": "3.0.3",
+    "better-sqlite3": "12.11.1",
+    "drizzle-orm": "0.45.4",
+    "marked": "16.4.2",
+    "next": "15.5.27",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/better-sqlite3": "9.6.0",
+    "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "drizzle-kit": "0.31.11",
+    "esbuild": "0.25.12",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "overrides": {
+    "postcss": "8.5.29"
+  }
+}
