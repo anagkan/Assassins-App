@@ -9,7 +9,6 @@ export interface Member {
   userId: number;
   displayName: string;
   username: string;
-  photoPath: string | null;
   status: "alive" | "eliminated" | "purged";
   kills: number;
 }
@@ -24,7 +23,6 @@ function membersOf(db: DB, teamIds: number[]): Map<number, Member[]> {
       userId: users.id,
       displayName: users.displayName,
       username: users.username,
-      photoPath: users.photoPath,
       status: participants.status,
       kills: participants.kills,
     })

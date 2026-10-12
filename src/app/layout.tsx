@@ -31,7 +31,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <Link href="/rules" className="hover:text-ink">Rules</Link>
                 <Link href="/history" className="hidden hover:text-ink sm:inline">History</Link>
                 {user.isAdmin && <Link href="/admin" className="hover:text-ink">Admin</Link>}
-                <Link href="/account" className="hover:text-ink" title="Account">{user.displayName.split(" ")[0]}</Link>
+                <Link href="/account" className="hover:text-ink">Profile</Link>
                 <form action={logoutAction}>
                   <button className="hover:text-ink" type="submit">Log out</button>
                 </form>

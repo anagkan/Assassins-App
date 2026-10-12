@@ -196,7 +196,6 @@ function RegistrationPanel({ game, teamId }: { game: Game; teamId: number | null
         <h2 className="h-display text-xl">Before it starts</h2>
         <ul className="list-disc space-y-1 pl-5 text-sm text-ink-dim">
           <li>Read the <Link href="/rules" className="text-accent underline">rules</Link> and safe zones.</li>
-          <li>Add a <Link href="/account" className="text-accent underline">photo</Link> so your hunters can recognize you. It&apos;s only fair.</li>
         </ul>
         <form action={leaveGameAction}>
           <input type="hidden" name="gameId" value={game.id} />
@@ -212,7 +211,7 @@ function MemberList({ members, showKills }: { members: Member[]; showKills?: boo
     <ul className="space-y-2">
       {members.map((m) => (
         <li key={m.participantId} className="flex items-center gap-3">
-          <Avatar name={m.displayName} photo={m.photoPath} size={40} dead={m.status !== "alive"} />
+          <Avatar name={m.displayName} size={40} dead={m.status !== "alive"} />
           <div className="min-w-0 flex-1">
             <div className={m.status !== "alive" ? "text-ink-dim line-through" : ""}>{m.displayName}</div>
             {showKills && <div className="text-xs text-ink-dim">{m.kills} kill{m.kills === 1 ? "" : "s"}</div>}
@@ -270,7 +269,7 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
             {target.members.length > 1 && <div className="h-display mb-3 text-2xl">{target.team.name}</div>}
             {target.members.length === 1 ? (
               <div className="flex items-center gap-4 py-2">
-                <Avatar name={target.members[0].displayName} photo={target.members[0].photoPath} size={96} />
+                <Avatar name={target.members[0].displayName} size={96} />
                 <div className="h-display text-3xl">{target.members[0].displayName}</div>
               </div>
             ) : (

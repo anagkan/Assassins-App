@@ -103,4 +103,3 @@ Edit `src/db/schema.ts`, run `npm run db:generate`, and commit the new file in `
 - Players can only ever load their own team's target. The full ring is only rendered on admin pages.
 - Every admin action re-checks `isAdmin` on the server. Server actions also get Next.js's built-in origin (CSRF) check.
 - Login and sign-up are rate-limited. Passwords are bcrypt-hashed, and sessions are random tokens stored hashed.
-- Uploaded photos are type-sniffed, capped at 3 MB, and only served to logged-in users.

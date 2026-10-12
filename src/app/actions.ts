@@ -7,7 +7,6 @@ import { users } from "@/db/schema";
 import { checkRegistrationCode, createUser, setPassword, verifyLogin } from "@/lib/auth";
 import { act, int, str } from "@/lib/flash";
 import * as G from "@/lib/game";
-import { deletePhoto, savePhoto } from "@/lib/photos";
 import { rateLimit } from "@/lib/rateLimit";
 import { clientIp, endSession, requireUser, startSession } from "@/lib/session";
 
@@ -134,16 +133,7 @@ export async function updateProfileAction(fd: FormData) {
       const db = getDb();
       const displayName = str(fd, "displayName").trim().slice(0, 60);
       if (!displayName) throw new G.GameError("Name can't be empty.");
-      const updates: { displayName: string; photoPath?: string | null } = { displayName };
-      const photo = fd.get("photo");
-      if (photo instanceof File && photo.size > 0) {
-        updates.photoPath = await savePhoto(photo);
-        deletePhoto(user.photoPath);
-      } else if (str(fd, "removePhoto") === "1") {
-        updates.photoPath = null;
-        deletePhoto(user.photoPath);
-      }
-      db.update(users).set(updates).where(eq(users.id, user.id)).run();
+      db.update(users).set({ displayName }).where(eq(users.id, user.id)).run();
     },
     "Profile saved.",
   );

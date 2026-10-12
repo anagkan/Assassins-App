@@ -28,21 +28,16 @@ export function PageTitle({ children, sub }: { children: ReactNode; sub?: ReactN
   );
 }
 
-export function Avatar({ name, photo, size = 48, dead }: { name: string; photo: string | null; size?: number; dead?: boolean }) {
+export function Avatar({ name, size = 48, dead }: { name: string; size?: number; dead?: boolean }) {
   const initials = name
     .split(/\s+/)
     .map((w) => w[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const cls = `shrink-0 ${size >= 64 ? "rounded-lg" : "rounded-sm"} border border-line object-cover ${dead ? "grayscale opacity-50" : ""}`;
-  if (photo) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={`/api/photos/${photo}`} alt={name} width={size} height={size} className={cls} style={{ width: size, height: size }} />;
-  }
   return (
     <div
-      className={`${cls} flex items-center justify-center bg-surface-sunken font-semibold text-ink-dim`}
+      className={`shrink-0 ${size >= 64 ? "rounded-lg" : "rounded-sm"} border border-line ${dead ? "opacity-50" : ""} flex items-center justify-center bg-surface-sunken font-semibold text-ink-dim`}
       style={{ width: size, height: size, fontSize: size / 2.8 }}
       aria-hidden
     >

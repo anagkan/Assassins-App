@@ -9,28 +9,16 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   const sp = await searchParams;
   return (
     <>
-      <PageTitle sub={`Signed in as @${user.username}`}>Account</PageTitle>
+      <PageTitle sub={`Signed in as @${user.username}`}>Profile</PageTitle>
       <Flash searchParams={sp} />
       <div className="grid gap-4 md:grid-cols-2">
         <form action={updateProfileAction} className="card space-y-4">
-          <h2 className="h-display text-xl">Profile</h2>
-          <div className="flex items-center gap-4">
-            <Avatar name={user.displayName} photo={user.photoPath} size={72} />
-            <p className="text-xs text-ink-dim">Your photo is shown to the players hunting you, so make it a clear one of your face.</p>
-          </div>
+          <h2 className="h-display text-xl">Name</h2>
+          <Avatar name={user.displayName} size={72} />
           <div>
             <label className="label" htmlFor="displayName">Name</label>
             <input className="input" id="displayName" name="displayName" defaultValue={user.displayName} maxLength={60} required />
           </div>
-          <div>
-            <label className="label" htmlFor="photo">Photo (JPEG/PNG/WebP, ≤3 MB)</label>
-            <input className="input" id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" />
-          </div>
-          {user.photoPath && (
-            <label className="flex items-center gap-2 text-sm text-ink-dim">
-              <input type="checkbox" name="removePhoto" value="1" /> Remove current photo
-            </label>
-          )}
           <button className="btn btn-primary">Save profile</button>
         </form>
 

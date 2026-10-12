@@ -82,7 +82,7 @@ export default async function TeamsAdmin({ params, searchParams }: { params: Pro
             <ul className="space-y-2">
               {members.map((m) => (
                 <li key={m.participantId} className="flex flex-wrap items-center gap-2 text-sm">
-                  <Avatar name={m.displayName} photo={m.photoPath} size={28} dead={m.status !== "alive"} />
+                  <Avatar name={m.displayName} size={28} dead={m.status !== "alive"} />
                   <span className={`flex-1 ${m.status !== "alive" ? "text-ink-dim line-through" : ""}`}>
                     {m.displayName} <span className="text-xs text-ink-dim">@{m.username}</span>
                   </span>
