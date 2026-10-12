@@ -41,10 +41,18 @@ You need a Linux VPS with at least 1 GB RAM (Ubuntu 24.04 is fine) and a domain 
    0 4 * * * cd /opt/assassins && ./scripts/backup.sh >> backups/backup.log 2>&1
    ```
 
+### Small servers (1 GB RAM)
+Building the image needs more memory than a 1 GB server has, so GitHub Actions builds it on every push to `main` (`.github/workflows/docker.yml`) and publishes it to `ghcr.io/anagkan/assassins-app`. On the server, add 2 GB of swap, then in step 4 pull the image instead of building:
+```sh
+sudo docker compose pull app && sudo docker compose up -d
+```
+If the image is private, log in first with a GitHub token that has `read:packages`: `echo <token> | sudo docker login ghcr.io -u <github-username> --password-stdin`.
+
 ### Updating
 ```sh
 cd /opt/assassins && sudo git pull && sudo docker compose up -d --build
 ```
+On a small server, wait for the GitHub build to finish, then: `sudo git pull && sudo docker compose pull app && sudo docker compose up -d`.
 Database migrations run automatically on startup.
 
 ### Backups and restore

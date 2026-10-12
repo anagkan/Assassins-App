@@ -1,11 +1,16 @@
 services:
   app:
+    # Prebuilt by .github/workflows/docker.yml. `docker compose pull` fetches it;
+    # `docker compose up -d --build` builds it locally instead (needs 2 GB+ RAM).
+    image: ${APP_IMAGE:-ghcr.io/anagkan/assassins-app:latest}
     build: .
     restart: unless-stopped
     env_file: .env
     environment:
       DATA_DIR: /data
       TZ: ${TZ:-America/New_York}
+      # Keep Node's heap small enough for a 1 GB server.
+      NODE_OPTIONS: --max-old-space-size=256
     volumes:
       - data:/data
 
