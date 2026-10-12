@@ -55,7 +55,7 @@ export default async function GameOverview({ params, searchParams }: { params: P
             <div className="rounded-lg border border-line p-3">
               <div className="label">Join code</div>
               <div className="font-mono text-2xl tracking-[0.3em] text-gold">{game.joinCode}</div>
-              <p className="mt-1 text-xs text-muted">Players need this to sign up. Share it with the club.</p>
+              <p className="mt-1 text-xs text-muted">Players enter this on their dashboard to join this game. Share it with the club.</p>
               <form action={gameStatusAction} className="mt-2">
                 <input type="hidden" name="gameId" value={game.id} />
                 <button name="op" value="joincode" className="btn btn-sm">Regenerate</button>

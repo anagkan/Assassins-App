@@ -3,6 +3,7 @@ import { desc, eq } from "drizzle-orm";
 import { PageTitle, fmtDate } from "@/components/ui";
 import { getDb } from "@/db";
 import { auditLog, games, users } from "@/db/schema";
+import { AdminNav } from "../AdminNav";
 
 export default async function AuditPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const page = Math.max(0, Number((await searchParams).page ?? 0) || 0);
@@ -17,8 +18,8 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
     .all();
   return (
     <>
-      <Link href="/admin" className="text-sm text-muted hover:text-bone">← Admin</Link>
       <PageTitle sub="Every game action, newest first.">Audit log</PageTitle>
+      <AdminNav current="/admin/audit" />
       <div className="card overflow-x-auto">
         <table className="table text-xs">
           <thead>

@@ -4,7 +4,7 @@ import { and, eq, ne } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
 import { ANNOUNCEMENT_KINDS, announcements, users } from "@/db/schema";
-import { createUser, resetPassword } from "@/lib/auth";
+import { createUser, resetPassword, setRegistrationCode } from "@/lib/auth";
 import { act, int, optInt, str } from "@/lib/flash";
 import * as G from "@/lib/game";
 import { requireAdmin } from "@/lib/session";
@@ -194,6 +194,29 @@ export async function announcementAction(fd: FormData) {
       G.audit(db, admin.id, id, "announcement.create", { kind, title });
     },
     "Saved.",
+  );
+}
+
+// ---- Registration ----------------------------------------------------------
+
+export async function registrationAction(fd: FormData) {
+  const admin = await requireAdmin();
+  const op = str(fd, "op");
+  await act(
+    "/admin/registration",
+    () => {
+      switch (op) {
+        case "generate":
+          return setRegistrationCode(getDb(), admin.id);
+        case "set":
+          return setRegistrationCode(getDb(), admin.id, str(fd, "code"));
+        case "close":
+          return setRegistrationCode(getDb(), admin.id, null);
+        default:
+          throw new G.GameError("Unknown action.");
+      }
+    },
+    op === "close" ? "Account sign-ups closed." : "Registration code saved.",
   );
 }
 

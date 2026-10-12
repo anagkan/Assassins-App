@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { asc } from "drizzle-orm";
 import { Flash, PageTitle, fmtDate } from "@/components/ui";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import { requireAdmin } from "@/lib/session";
+import { AdminNav } from "../AdminNav";
 import { userAdminAction } from "../actions";
 
 export default async function UsersAdmin({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; q?: string }> }) {
@@ -15,8 +15,8 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <Link href="/admin" className="text-sm text-muted hover:text-bone">← Admin</Link>
       <PageTitle sub="Reset forgotten passwords and hand admin rights to next year's officers.">Users</PageTitle>
+      <AdminNav current="/admin/users" />
       <Flash searchParams={sp} />
       <div className="mb-4 grid gap-3 md:grid-cols-2">
         <form className="card flex gap-2" action="/admin/users">

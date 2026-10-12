@@ -9,10 +9,12 @@ This is a checklist for club officers. You don't need to know how to code. You o
    - **Inactivity limit (days).** Teams with no kill in this many days can be purged. Leave it blank to turn this off.
    - Whether the feed shows **who** made each kill.
    - **Rules** and **Safe zones**. Players see these on the Rules page.
-3. Click **Open registration**. Share the **join code** and the site link in the club group chat.
+3. Under **Admin → Registration**, generate (or set) a **registration code**. Players need it to create an account. If no code is set, nobody can create an account.
+4. Click **Open registration** on the game. Share the site link, the **registration code** and the game's **join code** in the club group chat.
 
 ## 2. Registration
-- New players go to the site, click **Create an account**, and enter the join code. Returning players log in and enter the code on their dashboard.
+- New players go to the site, click **Create an account**, and enter the registration code. Then everyone (new and returning) enters the game's **join code** on their dashboard to join this semester's game.
+- To stop new accounts being created, click **Close account sign-ups** under **Admin → Registration**. **Regenerate** gives a new code if the old one leaked.
 - In team games, one person creates the team and shares its **invite code** with their teammates.
 - Remind everyone to add a **photo** under Account. It helps hunters recognize their targets.
 - To stop new people joining (say, a day before you start), click **Close sign-ups** in the Status box. Players already in can still create, join and leave teams. **Reopen sign-ups** undoes it.

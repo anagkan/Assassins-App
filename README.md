@@ -2,7 +2,7 @@
 
 A self-hosted web app for running the Colonial Club's **Assassins** game every semester. It supports solo games and teams of any size, with admin-approved kills, a public kill feed, standings, daily immunities and inactivity purges.
 
-- **Players** sign up with the semester's join code, then form or join a team. Each player sees their target, reports kills and watches the feed.
+- **Players** create an account with the club's registration code, join the semester's game with its join code, then form or join a team. Each player sees their target, reports kills and watches the feed.
 - **Admins** run the game: set rules, approve or reject kills, post immunities, purge inactive teams, fix mistakes, and hand admin rights to the next officers.
 
 Running a semester? See **[docs/ADMIN_GUIDE.md](docs/ADMIN_GUIDE.md)**.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createUser, normalizeStudentInfo } from "@/lib/auth";
+import { checkRegistrationCode, createUser, getRegistrationCode, normalizeStudentInfo, setRegistrationCode } from "@/lib/auth";
 import { freshDb } from "./helpers";
 
 const student = { firstName: " Ada ", lastName: "Lovelace", netId: "AB1234", puid: "012345678" };
@@ -36,5 +36,31 @@ describe("student info", () => {
     const db = freshDb();
     await createUser(db, { username: "admin1", displayName: "A", password: "password123" });
     await createUser(db, { username: "admin2", displayName: "B", password: "password123" });
+  });
+});
+
+describe("registration code", () => {
+  it("is closed until a code is set", () => {
+    const db = freshDb();
+    expect(getRegistrationCode(db)).toBeNull();
+    expect(() => checkRegistrationCode(db, "ANYTHING")).toThrow(/closed/);
+  });
+
+  it("accepts the code case-insensitively and rejects others", () => {
+    const db = freshDb();
+    setRegistrationCode(db, null, "colonial26");
+    expect(getRegistrationCode(db)).toBe("COLONIAL26");
+    expect(() => checkRegistrationCode(db, " colonial26 ")).not.toThrow();
+    expect(() => checkRegistrationCode(db, "WRONG")).toThrow(/wrong/);
+  });
+
+  it("regenerates, validates custom codes, and closes", () => {
+    const db = freshDb();
+    const code = setRegistrationCode(db, null);
+    expect(code).toMatch(/^[A-Z0-9]{6}$/);
+    expect(getRegistrationCode(db)).toBe(code);
+    expect(() => setRegistrationCode(db, null, "a b")).toThrow(/4–20/);
+    setRegistrationCode(db, null, null);
+    expect(getRegistrationCode(db)).toBeNull();
   });
 });

@@ -2,7 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { eq, lt } from "drizzle-orm";
 import type { DB } from "@/db";
-import { sessions, users, type User } from "@/db/schema";
+import { sessions, settings, users, type User } from "@/db/schema";
 import { GameError, audit, randomCode } from "./game";
 
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -60,6 +60,40 @@ export async function createUser(
     .values({ username, displayName, ...student, passwordHash, isAdmin: input.isAdmin ?? false, createdAt: Date.now() })
     .returning()
     .get();
+}
+
+// ---- Registration code ------------------------------------------------------
+// Needed to create an account. Separate from each game's join code, which players
+// enter afterwards to join a specific game. No code set = account sign-ups closed.
+
+const REGISTRATION_CODE_KEY = "registration_code";
+const REGISTRATION_CODE_RE = /^[A-Z0-9]{4,20}$/;
+
+export function getRegistrationCode(db: DB): string | null {
+  return db.select().from(settings).where(eq(settings.key, REGISTRATION_CODE_KEY)).get()?.value ?? null;
+}
+
+/** Set the registration code (random if none given), or pass null to close account sign-ups. */
+export function setRegistrationCode(db: DB, actorId: number | null, code?: string | null): string | null {
+  let value: string | null;
+  if (code === null) {
+    value = null;
+  } else {
+    value = code === undefined ? randomCode(6) : code.trim().toUpperCase();
+    if (!REGISTRATION_CODE_RE.test(value)) throw new GameError("Registration code must be 4–20 letters or numbers.");
+  }
+  db.transaction((tx) => {
+    if (value === null) tx.delete(settings).where(eq(settings.key, REGISTRATION_CODE_KEY)).run();
+    else tx.insert(settings).values({ key: REGISTRATION_CODE_KEY, value }).onConflictDoUpdate({ target: settings.key, set: { value } }).run();
+    audit(tx, actorId, null, value === null ? "registration.close" : "registration.code", {});
+  });
+  return value;
+}
+
+export function checkRegistrationCode(db: DB, input: string) {
+  const code = getRegistrationCode(db);
+  if (!code) throw new GameError("Account sign-ups are closed right now.");
+  if (input.trim().toUpperCase() !== code) throw new GameError("That registration code is wrong.");
 }
 
 let dummyHash: string | undefined;

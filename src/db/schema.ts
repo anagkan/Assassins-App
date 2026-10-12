@@ -159,6 +159,12 @@ export const auditLog = sqliteTable(
   (t) => [index("audit_game_idx").on(t.gameId)],
 );
 
+// Site-wide key/value settings that aren't tied to a game (e.g. the registration code).
+export const settings = sqliteTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type Game = typeof games.$inferSelect;
 export type Team = typeof teams.$inferSelect;

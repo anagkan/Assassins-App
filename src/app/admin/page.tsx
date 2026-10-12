@@ -4,6 +4,7 @@ import { Flash, PageTitle, StatusPill, fmtDate } from "@/components/ui";
 import { getDb } from "@/db";
 import { games } from "@/db/schema";
 import { gameStats, pendingReports } from "@/lib/queries";
+import { AdminNav } from "./AdminNav";
 import { createGameAction, deleteGameAction } from "./actions";
 
 function suggestName() {
@@ -18,11 +19,8 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
   return (
     <>
       <PageTitle sub="Run a new game each semester. Past games stay archived.">Admin</PageTitle>
+      <AdminNav current="/admin" />
       <Flash searchParams={sp} />
-      <div className="mb-5 flex flex-wrap gap-2 text-sm">
-        <Link href="/admin/users" className="btn btn-sm">Users &amp; admins</Link>
-        <Link href="/admin/audit" className="btn btn-sm">Audit log</Link>
-      </div>
 
       <form action={createGameAction} className="card mb-6 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <div>

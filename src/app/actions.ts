@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
-import { createUser, setPassword, verifyLogin } from "@/lib/auth";
+import { checkRegistrationCode, createUser, setPassword, verifyLogin } from "@/lib/auth";
 import { act, int, str } from "@/lib/flash";
 import * as G from "@/lib/game";
 import { deletePhoto, savePhoto } from "@/lib/photos";
@@ -30,9 +30,7 @@ export async function registerAction(fd: FormData) {
   }
   const db = getDb();
   await act("/register", async () => {
-    const game = G.getCurrentGame(db);
-    if (!game || game.status !== "registration" || !game.signupsOpen) throw new G.GameError("Sign-ups are closed right now.");
-    if (str(fd, "joinCode").trim().toUpperCase() !== game.joinCode) throw new G.GameError("That join code is wrong.");
+    checkRegistrationCode(db, str(fd, "registrationCode"));
     if (str(fd, "password") !== str(fd, "confirm")) throw new G.GameError("Passwords don't match.");
     const firstName = str(fd, "firstName").trim();
     const lastName = str(fd, "lastName").trim();
@@ -42,9 +40,8 @@ export async function registerAction(fd: FormData) {
       password: str(fd, "password"),
       student: { firstName, lastName, netId: str(fd, "netId"), puid: str(fd, "puid") },
     });
-    G.joinGame(db, user.id, game.id, game.joinCode);
     await startSession(user.id);
-    redirect("/?ok=" + encodeURIComponent("Welcome! You're in. Now create or join a team."));
+    redirect("/?ok=" + encodeURIComponent("Welcome! Your account is ready. Enter the game's join code to join."));
   });
 }
 

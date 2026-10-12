@@ -7,7 +7,7 @@ import path from "node:path";
 import { eq } from "drizzle-orm";
 import { openDb } from "../src/db";
 import { users } from "../src/db/schema";
-import { createUser } from "../src/lib/auth";
+import { createUser, getRegistrationCode, setRegistrationCode } from "../src/lib/auth";
 import * as G from "../src/lib/game";
 
 const args = process.argv.slice(2);
@@ -45,7 +45,8 @@ async function main() {
   G.autoFillTeams(db, admin.id, game.id, teamSize);
   if (!registrationOnly) G.startGame(db, admin.id, game.id);
   console.log(`Seeded "${game.name}" with ${playerCount} players in teams of ${teamSize}.`);
-  console.log(`Log in as admin / password123, or player1..player${playerCount} / password123. Join code: ${code}`);
+  const regCode = getRegistrationCode(db) ?? setRegistrationCode(db, null);
+  console.log(`Log in as admin / password123, or player1..player${playerCount} / password123. Join code: ${code}. Registration code: ${regCode}`);
 }
 
 main();
