@@ -14,7 +14,6 @@ export const users = sqliteTable("users", {
   passwordHash: text("password_hash").notNull(),
   isAdmin: integer("is_admin", { mode: "boolean" }).notNull().default(false),
   mustChangePassword: integer("must_change_password", { mode: "boolean" }).notNull().default(false),
-  photoPath: text("photo_path"),
   createdAt: integer("created_at").notNull(),
 });
 
