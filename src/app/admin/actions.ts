@@ -72,6 +72,10 @@ export async function gameStatusAction(fd: FormData) {
       switch (op) {
         case "open":
           return G.openRegistration(db, admin.id, id);
+        case "opensignups":
+          return G.setSignupsOpen(db, admin.id, id, true);
+        case "closesignups":
+          return G.setSignupsOpen(db, admin.id, id, false);
         case "start":
           return G.startGame(db, admin.id, id);
         case "pause":
@@ -89,7 +93,7 @@ export async function gameStatusAction(fd: FormData) {
     (r) =>
       op === "start" && Array.isArray(r) && r.length
         ? `Game started. Note: ${r.join(" ")}`
-        : ({ open: "Registration is open.", start: "Game started! Targets assigned.", pause: "Game paused.", resume: "Game resumed.", finish: "Game finished.", joincode: "New join code generated." } as Record<string, string>)[op],
+        : ({ open: "Registration is open.", opensignups: "Sign-ups reopened.", closesignups: "Sign-ups closed. Players already in can still sort out teams.", start: "Game started! Targets assigned.", pause: "Game paused.", resume: "Game resumed.", finish: "Game finished.", joincode: "New join code generated." } as Record<string, string>)[op],
   );
 }
 

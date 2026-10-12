@@ -89,6 +89,22 @@ describe("team mechanics", () => {
     assertRingValid(db, gameId);
   });
 
+  it("closing sign-ups blocks new joins but not team changes", () => {
+    const db = freshDb();
+    const { gameId, userIds } = setupGame(db, [1, 1]);
+    const code = G.getGame(db, gameId).joinCode;
+    G.setSignupsOpen(db, null, gameId, false);
+    const [late] = makeUsers(db, 1);
+    expect(() => G.joinGame(db, late, gameId, code)).toThrow(/closed/);
+    G.leaveTeam(db, gameId, userIds[0]);
+    G.createTeam(db, gameId, userIds[0], "Renamed");
+    G.setSignupsOpen(db, null, gameId, true);
+    G.joinGame(db, late, gameId, code);
+    G.createTeam(db, gameId, late, "Late");
+    G.startGame(db, null, gameId);
+    expect(() => G.setSignupsOpen(db, null, gameId, true)).toThrow();
+  });
+
   it("merge and move players during registration", () => {
     const db = freshDb();
     const { gameId } = setupGame(db, [1, 1, 2]);

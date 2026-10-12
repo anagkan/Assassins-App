@@ -11,6 +11,24 @@ describe("ring helpers", () => {
     }
   });
 
+  it("never pairs two teams against each other when there are 3+ teams", () => {
+    for (let n = 3; n < 30; n++) {
+      const ids = Array.from({ length: n }, (_, i) => i + 1);
+      for (let trial = 0; trial < 20; trial++) {
+        const ring = buildRing(ids);
+        for (const [hunter, target] of ring) expect(ring.get(target)).not.toBe(hunter);
+      }
+    }
+  });
+
+  it("assigns targets randomly", () => {
+    const ids = [1, 2, 3, 4, 5];
+    const seen = new Set<string>();
+    for (let i = 0; i < 500; i++) seen.add(ringOrder(buildRing(ids), 1).join(","));
+    // 5 teams form (5-1)! = 24 distinct cycles; all of them should turn up.
+    expect(seen.size).toBe(24);
+  });
+
   it("refuses fewer than 2 teams", () => {
     expect(() => buildRing([1])).toThrow();
   });

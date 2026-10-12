@@ -15,6 +15,7 @@ This is a checklist for club officers. You don't need to know how to code. You o
 - New players go to the site, click **Create an account**, and enter the join code. Returning players log in and enter the code on their dashboard.
 - In team games, one person creates the team and shares its **invite code** with their teammates.
 - Remind everyone to add a **photo** under Account. It helps hunters recognize their targets.
+- To stop new people joining (say, a day before you start), click **Close sign-ups** in the Status box. Players already in can still create, join and leave teams. **Reopen sign-ups** undoes it.
 - Under **Teams & players** you can move people between teams, merge or rename teams, and remove sign-ups.
 - Players who never joined a team: click **Auto-fill randomly**. It tops up small teams first, then makes new random teams of the size you choose. In solo games, auto-fill with size 1.
 

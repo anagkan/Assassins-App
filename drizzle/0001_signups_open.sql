@@ -1,0 +1,1 @@
+ALTER TABLE `games` ADD `signups_open` integer DEFAULT true NOT NULL;

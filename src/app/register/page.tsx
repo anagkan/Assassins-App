@@ -12,7 +12,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   if (await getCurrentUser()) redirect("/");
   const sp = await searchParams;
   const game = getCurrentGame(getDb());
-  const open = game?.status === "registration";
+  const open = game?.status === "registration" && game.signupsOpen;
   return (
     <div className="mx-auto max-w-sm pt-8">
       <h1 className="h-display mb-1 text-4xl">Sign up</h1>
@@ -27,9 +27,24 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
             <input className="input uppercase" id="joinCode" name="joinCode" defaultValue={sp.code} required autoCapitalize="characters" />
             <p className="mt-1 text-xs text-muted">Get this from the club officers.</p>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label" htmlFor="firstName">First name</label>
+              <input className="input" id="firstName" name="firstName" autoComplete="given-name" required maxLength={40} />
+            </div>
+            <div>
+              <label className="label" htmlFor="lastName">Last name</label>
+              <input className="input" id="lastName" name="lastName" autoComplete="family-name" required maxLength={40} />
+            </div>
+          </div>
           <div>
-            <label className="label" htmlFor="displayName">Your name (as people know you)</label>
-            <input className="input" id="displayName" name="displayName" required maxLength={60} />
+            <label className="label" htmlFor="netId">NetID</label>
+            <input className="input" id="netId" name="netId" placeholder="ab1234" autoCapitalize="none" required pattern="[A-Za-z]{2}[0-9]{4}" maxLength={6} title="2 letters followed by 4 numbers" />
+          </div>
+          <div>
+            <label className="label" htmlFor="puid">PUID</label>
+            <input className="input" id="puid" name="puid" inputMode="numeric" required pattern="[0-9]{9}" maxLength={9} title="9 digits" />
+            <p className="mt-1 text-xs text-muted">Only visible to admins.</p>
           </div>
           <div>
             <label className="label" htmlFor="username">Username</label>

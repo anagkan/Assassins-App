@@ -94,6 +94,13 @@ function Notices({ items }: { items: Announcement[] }) {
 }
 
 function JoinPanel({ game }: { game: Game }) {
+  if (game.status === "registration" && !game.signupsOpen) {
+    return (
+      <div className="card">
+        <p>Sign-ups for {game.name} are closed right now. Ask the club officers if you think you should be in.</p>
+      </div>
+    );
+  }
   if (game.status !== "registration") {
     return (
       <div className="card">

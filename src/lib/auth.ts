@@ -7,6 +7,8 @@ import { GameError, audit, randomCode } from "./game";
 
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const USERNAME_RE = /^[a-z0-9_.-]{3,32}$/;
+const NETID_RE = /^[a-z]{2}[0-9]{4}$/;
+const PUID_RE = /^[0-9]{9}$/;
 
 export function normalizeUsername(u: string) {
   return u.trim().toLowerCase();
@@ -17,9 +19,23 @@ export function validatePassword(pw: string) {
   if (pw.length > 200) throw new GameError("Password is too long.");
 }
 
+export type StudentInfo = { firstName: string; lastName: string; netId: string; puid: string };
+
+/** Validate and normalize the student fields collected at sign-up. */
+export function normalizeStudentInfo(input: StudentInfo): StudentInfo {
+  const firstName = input.firstName.trim().slice(0, 40);
+  const lastName = input.lastName.trim().slice(0, 40);
+  if (!firstName || !lastName) throw new GameError("Please enter your first and last name.");
+  const netId = input.netId.trim().toLowerCase();
+  if (!NETID_RE.test(netId)) throw new GameError("NetID must be 2 letters followed by 4 numbers (e.g. ab1234).");
+  const puid = input.puid.trim();
+  if (!PUID_RE.test(puid)) throw new GameError("PUID must be exactly 9 digits.");
+  return { firstName, lastName, netId, puid };
+}
+
 export async function createUser(
   db: DB,
-  input: { username: string; displayName: string; password: string; isAdmin?: boolean },
+  input: { username: string; displayName: string; password: string; isAdmin?: boolean; student?: StudentInfo },
 ): Promise<User> {
   const username = normalizeUsername(input.username);
   if (!USERNAME_RE.test(username)) {
@@ -27,14 +43,21 @@ export async function createUser(
   }
   const displayName = input.displayName.trim().slice(0, 60);
   if (!displayName) throw new GameError("Please enter your name.");
+  const student = input.student && normalizeStudentInfo(input.student);
   validatePassword(input.password);
   if (db.select().from(users).where(eq(users.username, username)).get()) {
     throw new GameError("That username is taken.");
   }
+  if (student && db.select().from(users).where(eq(users.netId, student.netId)).get()) {
+    throw new GameError("An account with that NetID already exists. Try logging in.");
+  }
+  if (student && db.select().from(users).where(eq(users.puid, student.puid)).get()) {
+    throw new GameError("An account with that PUID already exists. Try logging in.");
+  }
   const passwordHash = await bcrypt.hash(input.password, 12);
   return db
     .insert(users)
-    .values({ username, displayName, passwordHash, isAdmin: input.isAdmin ?? false, createdAt: Date.now() })
+    .values({ username, displayName, ...student, passwordHash, isAdmin: input.isAdmin ?? false, createdAt: Date.now() })
     .returning()
     .get();
 }

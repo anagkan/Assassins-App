@@ -6,6 +6,11 @@ export const users = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   username: text("username").notNull().unique(),
   displayName: text("display_name").notNull(),
+  // Collected at self sign-up. Null for admin-created and pre-existing accounts.
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  netId: text("net_id").unique(), // lowercase, e.g. "ab1234"
+  puid: text("puid").unique(), // 9 digits, kept as text to preserve leading zeros
   passwordHash: text("password_hash").notNull(),
   isAdmin: integer("is_admin", { mode: "boolean" }).notNull().default(false),
   mustChangePassword: integer("must_change_password", { mode: "boolean" }).notNull().default(false),
@@ -33,6 +38,8 @@ export const games = sqliteTable("games", {
   name: text("name").notNull(),
   status: text("status", { enum: GAME_STATUSES }).notNull().default("draft"),
   joinCode: text("join_code").notNull(),
+  // Lets admins stop new sign-ups during registration while teams are sorted out.
+  signupsOpen: integer("signups_open", { mode: "boolean" }).notNull().default(true),
   maxTeamSize: integer("max_team_size"), // null = unlimited
   minTeamSize: integer("min_team_size").notNull().default(1),
   rulesMarkdown: text("rules_markdown").notNull().default(""),

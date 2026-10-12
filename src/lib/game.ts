@@ -202,8 +202,17 @@ export function openRegistration(db: DB, actorId: number | null, gameId: number)
       .where(and(inArray(games.status, ["registration", "active", "paused"]), ne(games.id, gameId)))
       .get();
     if (other) throw new GameError(`Finish "${other.name}" before opening a new game.`);
-    tx.update(games).set({ status: "registration" }).where(eq(games.id, gameId)).run();
+    tx.update(games).set({ status: "registration", signupsOpen: true }).where(eq(games.id, gameId)).run();
     audit(tx, actorId, gameId, "game.open_registration");
+  });
+}
+
+/** Opens or closes new sign-ups without leaving registration. Existing players can still manage teams. */
+export function setSignupsOpen(db: DB, actorId: number | null, gameId: number, open: boolean) {
+  db.transaction((tx) => {
+    requireStatus(getGame(tx, gameId), "registration");
+    tx.update(games).set({ signupsOpen: open }).where(eq(games.id, gameId)).run();
+    audit(tx, actorId, gameId, open ? "game.signups_open" : "game.signups_close");
   });
 }
 
@@ -311,6 +320,7 @@ export function joinGame(db: DB, userId: number, gameId: number, joinCode: strin
   return db.transaction((tx) => {
     const game = getGame(tx, gameId);
     if (game.status !== "registration") throw new GameError("Registration is closed.");
+    if (!game.signupsOpen) throw new GameError("Sign-ups are closed right now.");
     if (joinCode.trim().toUpperCase() !== game.joinCode) throw new GameError("That join code is wrong.");
     const existing = getParticipantForUser(tx, gameId, userId);
     if (existing) return existing;

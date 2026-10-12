@@ -68,6 +68,14 @@ export default async function GameOverview({ params, searchParams }: { params: P
             {game.status === "draft" && <button name="op" value="open" className="btn btn-primary w-full">Open registration</button>}
             {game.status === "registration" && (
               <>
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-line p-2 text-sm">
+                  <span>Sign-ups: <b className={game.signupsOpen ? "text-gold" : "text-blood"}>{game.signupsOpen ? "Open" : "Closed"}</b></span>
+                  {game.signupsOpen ? (
+                    <button name="op" value="closesignups" className="btn btn-sm">Close sign-ups</button>
+                  ) : (
+                    <button name="op" value="opensignups" className="btn btn-sm">Reopen sign-ups</button>
+                  )}
+                </div>
                 <button name="op" value="start" className="btn btn-primary w-full">Start game &amp; assign targets</button>
                 <p className="text-xs text-muted">Every player must be on a team first (see Teams &amp; players → auto-fill).</p>
               </>
