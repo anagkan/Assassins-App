@@ -16,7 +16,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           <h2 className="h-display text-xl">Profile</h2>
           <div className="flex items-center gap-4">
             <Avatar name={user.displayName} photo={user.photoPath} size={72} />
-            <p className="text-xs text-muted">Your photo is shown to the players hunting you, so make it a clear one of your face.</p>
+            <p className="text-xs text-ink-dim">Your photo is shown to the players hunting you, so make it a clear one of your face.</p>
           </div>
           <div>
             <label className="label" htmlFor="displayName">Name</label>
@@ -27,16 +27,16 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
             <input className="input" id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" />
           </div>
           {user.photoPath && (
-            <label className="flex items-center gap-2 text-sm text-muted">
+            <label className="flex items-center gap-2 text-sm text-ink-dim">
               <input type="checkbox" name="removePhoto" value="1" /> Remove current photo
             </label>
           )}
           <button className="btn btn-primary">Save profile</button>
         </form>
 
-        <form action={changePasswordAction} className={`card space-y-4 ${user.mustChangePassword ? "border-gold" : ""}`}>
+        <form action={changePasswordAction} className={`card space-y-4 ${user.mustChangePassword ? "border-warn-ink" : ""}`}>
           <h2 className="h-display text-xl">Change password</h2>
-          {user.mustChangePassword && <p className="text-sm text-gold">You&apos;re using a temporary password. Please set your own.</p>}
+          {user.mustChangePassword && <p className="rounded-sm bg-warn px-3 py-2 text-sm text-(--warn-chip-ink)">You&apos;re using a temporary password. Please set your own.</p>}
           <div>
             <label className="label" htmlFor="current">Current password</label>
             <input className="input" id="current" name="current" type="password" autoComplete="current-password" required />

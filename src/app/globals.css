@@ -1,72 +1,170 @@
 @import "tailwindcss";
 
-@theme {
-  --color-ink: #0e0d0c;
-  --color-panel: #181614;
-  --color-panel-2: #221f1c;
-  --color-line: #34302b;
-  --color-bone: #ece6db;
-  --color-muted: #a39b8f;
-  --color-blood: #c8102e;
-  --color-blood-dim: #7a0a1c;
-  --color-gold: #d4a84b;
-  --color-ok: #4f9d69;
-  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-}
+/*
+ * Colors, type and shape come from the Colo Meal Check design system.
+ * Two faces share one status language (ok / warn / stop / info):
+ *   - kiosk (default): Colonial navy with gold accents, for player pages.
+ *   - admin: light grey and white with a blue accent, for the admin console.
+ * A page opts into the admin face by rendering an element with data-face="admin".
+ */
+:root {
+  --navy: #000985;
+  --gold: #f5cc00;
+  --gold-dark: #d8a900;
+  --gold-ink: #241d00;
+  --signal-ok: #1f9d55;
+  --signal-warn: #c77d0a;
+  --signal-stop: #b3312c;
+  --signal-info: #2c5fa8;
+  --warn-fill-ink: #241800;
 
-html {
+  /* kiosk face */
+  --bg: var(--navy);
+  --surface: #0f2089;
+  --surface-sunken: #0b1868;
+  --ink: #ffffff;
+  --ink-dim: #c7d0f5;
+  --line: #2846c9;
+  --accent: var(--gold);
+  --accent-ink: var(--gold-ink);
+  --ok: var(--signal-ok);
+  --ok-ink: #d8f5e4;
+  --warn: var(--signal-warn);
+  --warn-ink: #ffeccc;
+  --stop: var(--signal-stop);
+  --stop-ink: #ffe0de;
+  --info: var(--signal-info);
+  --info-ink: #dbe8fb;
+
+  /* Aliases used by this app. ok-ink on the solid kiosk green only passes at 24px+,
+     so small chips and notices use the dark fill ink instead. */
+  --ok-chip-ink: var(--warn-fill-ink);
+  --warn-chip-ink: var(--warn-fill-ink);
+  --field: var(--surface-sunken);
+  --club: var(--gold);
+
   color-scheme: dark;
 }
 
+:root:has([data-face="admin"]) {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-sunken: #f6f7f9;
+  --ink: #1b2029;
+  --ink-dim: #6b7686;
+  --line: #dfe3ea;
+  --accent: #2f5d94;
+  --accent-ink: #ffffff;
+  --ok: #dcf3e4;
+  --ok-ink: #145c31;
+  --warn: #fdeccd;
+  --warn-ink: #7a4c05;
+  --stop: #fadedd;
+  --stop-ink: #8c2420;
+  --info: #dee9f8;
+  --info-ink: #234a78;
+
+  --ok-chip-ink: var(--ok-ink);
+  --warn-chip-ink: var(--warn-ink);
+  --field: var(--surface);
+  --club: var(--ink);
+
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-navy: var(--navy);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-ink: var(--ink);
+  --color-ink-dim: var(--ink-dim);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-ok: var(--ok);
+  --color-ok-ink: var(--ok-ink);
+  --color-warn: var(--warn);
+  --color-warn-ink: var(--warn-ink);
+  --color-stop: var(--stop);
+  --color-stop-ink: var(--stop-ink);
+  --color-info: var(--info);
+  --color-info-ink: var(--info-ink);
+  --color-club: var(--club);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --radius-control: 7px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+}
+
 body {
-  background: var(--color-ink);
-  color: var(--color-bone);
+  background: var(--bg);
+  color: var(--ink);
   font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.45;
 }
 
 @layer components {
   .card {
-    @apply rounded-xl border border-line bg-panel p-4 sm:p-5;
+    @apply rounded-md border border-line bg-surface p-4 sm:p-5;
   }
   .h-display {
-    @apply font-display tracking-tight;
+    @apply font-semibold tracking-tight;
   }
   .label {
-    @apply mb-1 block text-xs font-semibold uppercase tracking-wider text-muted;
+    @apply mb-1 block text-[0.78rem] font-semibold uppercase tracking-[0.05em] text-ink-dim;
   }
   .input {
-    @apply w-full rounded-lg border border-line bg-ink px-3 py-2 text-bone placeholder:text-muted/60 focus:border-blood focus:outline-none;
+    @apply w-full rounded-control border border-line bg-(--field) px-3 py-2 text-ink placeholder:text-ink-dim focus:border-accent focus:outline-none;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-panel-2 px-4 py-2 text-sm font-semibold text-bone transition hover:border-muted disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-control border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink hover:border-accent disabled:opacity-50;
   }
   .btn-primary {
-    @apply border-blood bg-blood text-white hover:bg-blood-dim;
+    @apply border-accent bg-accent text-accent-ink hover:brightness-95;
   }
   .btn-danger {
-    @apply border-blood-dim text-blood hover:bg-blood-dim hover:text-white;
+    @apply border-stop bg-stop text-stop-ink hover:border-stop-ink;
   }
   .btn-sm {
     @apply px-2.5 py-1 text-xs;
   }
   .pill {
-    @apply inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold;
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-[0.78rem] font-semibold;
+  }
+  .chip-ok {
+    @apply bg-ok text-(--ok-chip-ink);
+  }
+  .chip-warn {
+    @apply bg-warn text-(--warn-chip-ink);
+  }
+  .chip-stop {
+    @apply bg-stop text-stop-ink;
+  }
+  .chip-info {
+    @apply bg-info text-info-ink;
+  }
+  .chip-neutral {
+    @apply bg-line text-ink;
   }
   .table {
-    @apply w-full text-left text-sm;
+    @apply w-full text-left text-sm tabular-nums;
   }
   .table th {
-    @apply border-b border-line pb-2 text-xs font-semibold uppercase tracking-wider text-muted;
+    @apply border-b border-line pb-2 text-[0.78rem] font-semibold uppercase tracking-[0.05em] text-ink-dim;
   }
   .table td {
-    @apply border-b border-line/60 py-2 pr-2 align-top;
+    @apply border-b border-line py-2 pr-2 align-top;
   }
   .prose-rules {
     @apply space-y-3 leading-relaxed;
   }
   .prose-rules h1, .prose-rules h2, .prose-rules h3 {
-    @apply font-display text-xl text-bone;
+    @apply text-xl font-semibold text-ink;
   }
   .prose-rules ul {
     @apply list-disc space-y-1 pl-6;
@@ -75,6 +173,6 @@ body {
     @apply list-decimal space-y-1 pl-6;
   }
   .prose-rules a {
-    @apply text-gold underline;
+    @apply text-accent underline;
   }
 }

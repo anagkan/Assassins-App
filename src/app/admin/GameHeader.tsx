@@ -20,7 +20,7 @@ export function GameHeader({ id, current, sp }: { id: string; current: string; s
   const base = `/admin/games/${game.id}`;
   return (
     <>
-      <Link href="/admin" className="text-sm text-muted hover:text-bone">← All games</Link>
+      <Link href="/admin" className="text-sm text-ink-dim hover:text-ink">← All games</Link>
       <div className="mb-4 mt-1 flex flex-wrap items-baseline gap-3">
         <h1 className="h-display text-3xl">{game.name}</h1>
         <StatusPill status={game.status} />

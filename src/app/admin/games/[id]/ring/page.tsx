@@ -18,35 +18,35 @@ export default async function RingPage({ params, searchParams }: { params: Promi
   return (
     <>
       <GameHeader id={id} current={`/admin/games/${game.id}/ring`} sp={sp} />
-      <p className="mb-4 text-sm text-muted">⚠ This page shows every assignment. Don&apos;t screen-share it.</p>
+      <p className="mb-4 text-sm text-warn-ink">This page shows every assignment. Don&apos;t screen-share it.</p>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="card">
           <div className="mb-3 flex items-center gap-2">
             <h2 className="h-display flex-1 text-xl">Target ring</h2>
-            {live && (problems.length ? <span className="pill border-blood text-blood">invalid</span> : <span className="pill border-ok text-ok">valid</span>)}
+            {live && (problems.length ? <span className="pill chip-stop">invalid</span> : <span className="pill chip-ok">valid</span>)}
           </div>
-          {problems.length > 0 && <p className="mb-3 text-sm text-blood">{problems.join(" ")}</p>}
+          {problems.length > 0 && <p className="mb-3 text-sm text-stop-ink">{problems.join(" ")}</p>}
           {!live || ring.length === 0 ? (
             <Empty>The ring exists only while a game is running.</Empty>
           ) : (
             <ol className="space-y-1 text-sm">
               {ring.map(({ team, alive }, i) => (
                 <li key={team.id} className="flex items-start gap-2">
-                  <span className="w-6 text-right text-muted">{i + 1}.</span>
+                  <span className="w-6 text-right text-ink-dim">{i + 1}.</span>
                   <div className="flex-1">
-                    <b>{team.name}</b> <span className="text-muted">({alive.map((m) => m.displayName).join(", ")})</span>
-                    <div className="text-xs text-blood">↓ hunts</div>
+                    <b>{team.name}</b> <span className="text-ink-dim">({alive.map((m) => m.displayName).join(", ")})</span>
+                    <div className="text-xs text-ink-dim">↓ hunts</div>
                   </div>
                 </li>
               ))}
-              <li className="pl-8 text-xs text-muted">…back to {ring[0].team.name}</li>
+              <li className="pl-8 text-xs text-ink-dim">…back to {ring[0].team.name}</li>
             </ol>
           )}
           {live && ring.length > 1 && (
             <form action={reshuffleAction} className="mt-4 border-t border-line pt-3">
               <input type="hidden" name="gameId" value={game.id} />
               <button className="btn btn-sm">Reshuffle all targets</button>
-              <p className="mt-1 text-xs text-muted">Gives every alive team a new random target, voids pending reports and restarts inactivity clocks.</p>
+              <p className="mt-1 text-xs text-ink-dim">Gives every alive team a new random target, voids pending reports and restarts inactivity clocks.</p>
             </form>
           )}
         </div>
@@ -62,12 +62,12 @@ export default async function RingPage({ params, searchParams }: { params: Promi
           ) : (
             <form action={purgeInactiveAction} className="space-y-2">
               <input type="hidden" name="gameId" value={game.id} />
-              <p className="text-sm text-muted">These teams passed their deadline. Untick anyone you want to spare.</p>
+              <p className="text-sm text-ink-dim">These teams passed their deadline. Untick anyone you want to spare.</p>
               {inactive.map(({ team, deadline }) => (
                 <label key={team.id} className="flex items-center gap-2 text-sm">
                   <input type="checkbox" name="teamId" value={team.id} defaultChecked />
                   <span className="flex-1">{team.name}</span>
-                  <span className="text-xs text-muted" title={fmtDate(deadline)}>overdue {fmtRelative(deadline).replace(" ago", "")}</span>
+                  <span className="text-xs text-ink-dim" title={fmtDate(deadline)}>overdue {fmtRelative(deadline).replace(" ago", "")}</span>
                 </label>
               ))}
               <button className="btn btn-danger">Purge selected</button>

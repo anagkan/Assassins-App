@@ -39,11 +39,11 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
             {rows.map((u) => (
               <tr key={u.id}>
                 <td>{u.displayName}</td>
-                <td className="text-muted">@{u.username}</td>
-                <td>{u.netId ?? <span className="text-muted">—</span>}</td>
-                <td className="font-mono">{u.puid ?? <span className="text-muted">—</span>}</td>
-                <td className="whitespace-nowrap text-muted">{fmtDate(u.createdAt)}</td>
-                <td>{u.isAdmin ? <span className="pill border-gold text-gold">admin</span> : "player"}</td>
+                <td className="text-ink-dim">@{u.username}</td>
+                <td>{u.netId ?? <span className="text-ink-dim">—</span>}</td>
+                <td className="font-mono">{u.puid ?? <span className="text-ink-dim">—</span>}</td>
+                <td className="whitespace-nowrap text-ink-dim">{fmtDate(u.createdAt)}</td>
+                <td>{u.isAdmin ? <span className="pill chip-info">admin</span> : "player"}</td>
                 <td className="flex flex-wrap justify-end gap-1">
                   <form action={userAdminAction}>
                     <input type="hidden" name="userId" value={u.id} />

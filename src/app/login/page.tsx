@@ -10,7 +10,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <div className="mx-auto max-w-sm pt-8">
       <h1 className="h-display mb-1 text-4xl">Log in</h1>
-      <p className="mb-6 text-sm text-muted">Trust no one.</p>
+      <p className="mb-6 text-sm text-ink-dim">Trust no one.</p>
       <Flash searchParams={sp} />
       <form action={loginAction} className="card space-y-4">
         <div>
@@ -23,8 +23,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </div>
         <button className="btn btn-primary w-full" type="submit">Log in</button>
       </form>
-      <p className="mt-4 text-center text-sm text-muted">
-        New this semester? <Link href="/register" className="text-gold underline">Create an account</Link>
+      <p className="mt-4 text-center text-sm text-ink-dim">
+        New this semester? <Link href="/register" className="text-accent underline">Create an account</Link>
         <br />
         Forgot your password? Ask a game admin to reset it.
       </p>

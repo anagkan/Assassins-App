@@ -30,8 +30,8 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                 </thead>
                 <tbody>
                   {teamRows.map(({ team, size, alive }) => (
-                    <tr key={team.id} className={team.status !== "alive" ? "text-muted" : ""}>
-                      <td>{game.winnerTeamId === team.id && "🏆 "}{team.name}</td>
+                    <tr key={team.id} className={team.status !== "alive" ? "text-ink-dim" : ""}>
+                      <td>{team.name}{game.winnerTeamId === team.id && <span className="pill chip-ok ml-2">winner</span>}</td>
                       <td>{alive}/{size}</td>
                       <td>{team.kills}</td>
                       <td>{team.status !== "alive" && <StatusPill status={team.status} />}</td>
@@ -52,8 +52,8 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                 </thead>
                 <tbody>
                   {(solo ? players : topPlayers).map((p) => (
-                    <tr key={p.participantId} className={p.status !== "alive" ? "text-muted" : ""}>
-                      <td>{solo && game.winnerTeamId && p.status === "alive" && "🏆 "}{p.displayName}</td>
+                    <tr key={p.participantId} className={p.status !== "alive" ? "text-ink-dim" : ""}>
+                      <td>{p.displayName}{solo && game.winnerTeamId && p.status === "alive" && <span className="pill chip-ok ml-2">winner</span>}</td>
                       {!solo && <td>{p.teamName}</td>}
                       <td>{p.kills}</td>
                       <td>{p.status !== "alive" && <StatusPill status={p.status} />}</td>

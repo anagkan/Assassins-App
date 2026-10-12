@@ -23,9 +23,9 @@ export default async function AnnouncementsAdmin({ params, searchParams }: { par
           <div>
             <label className="label" htmlFor="kind">Type</label>
             <select className="input" id="kind" name="kind" defaultValue="immunity">
-              <option value="immunity">🛡 Immunity (e.g. &quot;safe while wearing a hat&quot;)</option>
-              <option value="rule">⚠ Rule of the day (e.g. &quot;kills only count outdoors&quot;)</option>
-              <option value="general">📣 General announcement</option>
+              <option value="immunity">Immunity (e.g. &quot;safe while wearing a hat&quot;)</option>
+              <option value="rule">Rule of the day (e.g. &quot;kills only count outdoors&quot;)</option>
+              <option value="general">General announcement</option>
             </select>
           </div>
           <div>
@@ -55,19 +55,19 @@ export default async function AnnouncementsAdmin({ params, searchParams }: { par
             const state = a.activeFrom > now ? "scheduled" : a.activeUntil && a.activeUntil <= now ? "expired" : "live";
             return (
               <div key={a.id} className={`card py-3 ${state === "expired" ? "opacity-60" : ""}`}>
-                <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-ink-dim">
                   <span>{a.kind}</span>
-                  <span className={`pill ${state === "live" ? "border-ok text-ok" : "border-line"}`}>{state}</span>
+                  <span className={`pill ${state === "live" ? "chip-ok" : "chip-neutral"}`}>{state}</span>
                   <form action={announcementAction} className="ml-auto">
                     <input type="hidden" name="gameId" value={game.id} />
                     <input type="hidden" name="op" value="delete" />
                     <input type="hidden" name="announcementId" value={a.id} />
-                    <button className="normal-case text-blood underline">delete</button>
+                    <button className="normal-case text-stop-ink underline">delete</button>
                   </form>
                 </div>
                 <div className="font-semibold">{a.title}</div>
-                {a.body && <p className="whitespace-pre-line text-sm text-muted">{a.body}</p>}
-                <p className="mt-1 text-xs text-muted">{fmtDate(a.activeFrom)} → {a.activeUntil ? fmtDate(a.activeUntil) : "no end"}</p>
+                {a.body && <p className="whitespace-pre-line text-sm text-ink-dim">{a.body}</p>}
+                <p className="mt-1 text-xs text-ink-dim">{fmtDate(a.activeFrom)} → {a.activeUntil ? fmtDate(a.activeUntil) : "no end"}</p>
               </div>
             );
           })}

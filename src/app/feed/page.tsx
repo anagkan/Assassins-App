@@ -26,35 +26,35 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
         <ol className="space-y-2">
           {events.map((e, i) => (
             <li key={i} className="card flex items-start gap-3 py-3">
-              <span className="mt-0.5 text-lg" aria-hidden>
-                {e.kind === "kill" ? "🗡" : e.kind === "team_out" ? "☠" : "🚫"}
+              <span className={`pill mt-0.5 w-20 justify-center ${e.kind === "player_removed" ? "chip-neutral" : "chip-stop"}`}>
+                {e.kind === "kill" ? "Kill" : e.kind === "team_out" ? "Team out" : "Removed"}
               </span>
               <div className="flex-1">
                 {e.kind === "kill" && (
                   <p>
                     <b>{e.victim}</b>
-                    {!e.solo && <span className="text-muted"> ({e.victimTeam})</span>} was eliminated
+                    {!e.solo && <span className="text-ink-dim"> ({e.victimTeam})</span>} was eliminated
                     {showKiller && (
                       <>
                         {" "}by <b>{e.killer}</b>
-                        {e.killerTeam !== e.killer && <span className="text-muted"> ({e.killerTeam})</span>}
+                        {e.killerTeam !== e.killer && <span className="text-ink-dim"> ({e.killerTeam})</span>}
                       </>
                     )}
                     .
                   </p>
                 )}
                 {e.kind === "team_out" && (
-                  <p className="text-blood">
+                  <p>
                     Team <b>{e.team}</b> {e.purged ? "has been removed from the game" : "has been wiped out"}
                     {showKiller && e.by && !e.purged && <> by <b>{e.by}</b></>}.
                   </p>
                 )}
                 {e.kind === "player_removed" && (
-                  <p className="text-muted">
+                  <p className="text-ink-dim">
                     <b>{e.player}</b> was removed from the game.
                   </p>
                 )}
-                <p className="text-xs text-muted">{fmtDate(e.at)}</p>
+                <p className="text-xs text-ink-dim">{fmtDate(e.at)}</p>
               </div>
             </li>
           ))}

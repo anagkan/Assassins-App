@@ -25,7 +25,7 @@ export default async function RulesPage({ searchParams }: { searchParams: Promis
             <Empty>The admins haven&apos;t posted rules yet.</Empty>
           )}
         </section>
-        <section className="card self-start border-ok/50">
+        <section className="card self-start">
           <h2 className="h-display mb-3 text-xl">Safe zones</h2>
           {game.safeZonesMarkdown ? (
             <div className="prose-rules text-sm" dangerouslySetInnerHTML={{ __html: renderMarkdown(game.safeZonesMarkdown) }} />
@@ -33,7 +33,7 @@ export default async function RulesPage({ searchParams }: { searchParams: Promis
             <Empty>None posted.</Empty>
           )}
           {game.inactivityDays && (
-            <p className="mt-4 border-t border-line pt-3 text-sm text-muted">
+            <p className="mt-4 border-t border-line pt-3 text-sm text-ink-dim">
               Inactivity: {game.maxTeamSize === 1 ? "players" : "teams"} without a kill for {game.inactivityDays} day
               {game.inactivityDays === 1 ? "" : "s"} may be purged.
             </p>

@@ -17,13 +17,13 @@ export default async function RegistrationAdmin({ searchParams }: { searchParams
           <div className="label">Registration code</div>
           {code ? (
             <>
-              <div className="font-mono text-2xl tracking-[0.3em] text-gold">{code}</div>
-              <p className="text-xs text-muted">New players need this to create an account. Share it with the club.</p>
+              <div className="font-mono text-2xl tracking-[0.3em] text-accent">{code}</div>
+              <p className="text-xs text-ink-dim">New players need this to create an account. Share it with the club.</p>
             </>
           ) : (
             <p className="text-sm">
-              <b className="text-blood">Account sign-ups are closed.</b>{" "}
-              <span className="text-muted">Generate or set a code to let new players create accounts.</span>
+              <b className="text-stop-ink">Account sign-ups are closed.</b>{" "}
+              <span className="text-ink-dim">Generate or set a code to let new players create accounts.</span>
             </p>
           )}
           <form action={registrationAction} className="flex flex-wrap gap-2">
@@ -35,7 +35,7 @@ export default async function RegistrationAdmin({ searchParams }: { searchParams
           <input type="hidden" name="op" value="set" />
           <label className="label" htmlFor="code">Set a custom code</label>
           <input className="input uppercase" id="code" name="code" required pattern="[A-Za-z0-9]{4,20}" title="4–20 letters or numbers" autoCapitalize="characters" />
-          <p className="text-xs text-muted">4–20 letters or numbers. Not case-sensitive for players.</p>
+          <p className="text-xs text-ink-dim">4–20 letters or numbers. Not case-sensitive for players.</p>
           <button className="btn btn-sm">Save code</button>
         </form>
       </div>

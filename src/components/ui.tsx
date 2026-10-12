@@ -4,14 +4,14 @@ import type { ReactNode } from "react";
 export function Flash({ searchParams }: { searchParams: { ok?: string; error?: string } }) {
   if (searchParams.error) {
     return (
-      <div role="alert" className="mb-4 rounded-lg border border-blood bg-blood-dim/30 px-4 py-3 text-sm">
+      <div role="alert" className="mb-4 rounded-sm bg-stop px-4 py-3 text-sm text-stop-ink">
         {searchParams.error}
       </div>
     );
   }
   if (searchParams.ok) {
     return (
-      <div role="status" className="mb-4 rounded-lg border border-ok bg-ok/15 px-4 py-3 text-sm">
+      <div role="status" className="mb-4 rounded-sm bg-ok px-4 py-3 text-sm text-(--ok-chip-ink)">
         {searchParams.ok}
       </div>
     );
@@ -23,7 +23,7 @@ export function PageTitle({ children, sub }: { children: ReactNode; sub?: ReactN
   return (
     <div className="mb-5">
       <h1 className="h-display text-3xl sm:text-4xl">{children}</h1>
-      {sub && <p className="mt-1 text-sm text-muted">{sub}</p>}
+      {sub && <p className="mt-1 text-sm text-ink-dim">{sub}</p>}
     </div>
   );
 }
@@ -35,14 +35,14 @@ export function Avatar({ name, photo, size = 48, dead }: { name: string; photo: 
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const cls = `shrink-0 rounded-full border border-line object-cover ${dead ? "grayscale opacity-50" : ""}`;
+  const cls = `shrink-0 ${size >= 64 ? "rounded-lg" : "rounded-sm"} border border-line object-cover ${dead ? "grayscale opacity-50" : ""}`;
   if (photo) {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={`/api/photos/${photo}`} alt={name} width={size} height={size} className={cls} style={{ width: size, height: size }} />;
   }
   return (
     <div
-      className={`${cls} flex items-center justify-center bg-panel-2 font-semibold text-muted`}
+      className={`${cls} flex items-center justify-center bg-surface-sunken font-semibold text-ink-dim`}
       style={{ width: size, height: size, fontSize: size / 2.8 }}
       aria-hidden
     >
@@ -53,25 +53,25 @@ export function Avatar({ name, photo, size = 48, dead }: { name: string; photo: 
 
 export function StatusPill({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    alive: "border-ok text-ok",
-    eliminated: "border-blood text-blood",
-    purged: "border-muted text-muted",
-    pending: "border-gold text-gold",
-    approved: "border-ok text-ok",
-    rejected: "border-blood text-blood",
-    stale: "border-muted text-muted",
-    registration: "border-gold text-gold",
-    active: "border-ok text-ok",
-    paused: "border-gold text-gold",
-    finished: "border-muted text-muted",
-    draft: "border-muted text-muted",
+    alive: "chip-ok",
+    eliminated: "chip-stop",
+    purged: "chip-neutral",
+    pending: "chip-warn",
+    approved: "chip-ok",
+    rejected: "chip-stop",
+    stale: "chip-neutral",
+    registration: "chip-info",
+    active: "chip-ok",
+    paused: "chip-warn",
+    finished: "chip-neutral",
+    draft: "chip-neutral",
   };
   const label = status === "purged" ? "removed" : status;
-  return <span className={`pill ${styles[status] ?? "border-line text-muted"}`}>{label}</span>;
+  return <span className={`pill ${styles[status] ?? "chip-neutral"}`}>{label}</span>;
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <p className="py-6 text-center text-sm text-muted">{children}</p>;
+  return <p className="py-6 text-center text-sm text-ink-dim">{children}</p>;
 }
 
 export function TabNav({ items, current }: { items: { href: string; label: string }[]; current: string }) {
@@ -81,8 +81,8 @@ export function TabNav({ items, current }: { items: { href: string; label: strin
         <Link
           key={i.href}
           href={i.href}
-          className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm ${
-            current === i.href ? "bg-panel-2 text-bone" : "text-muted hover:text-bone"
+          className={`whitespace-nowrap rounded-control border px-3 py-1.5 text-sm ${
+            current === i.href ? "border-accent bg-surface font-semibold text-ink" : "border-transparent text-ink-dim hover:border-line hover:text-ink"
           }`}
         >
           {i.label}

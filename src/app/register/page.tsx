@@ -15,7 +15,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   return (
     <div className="mx-auto max-w-sm pt-8">
       <h1 className="h-display mb-1 text-4xl">Sign up</h1>
-      <p className="mb-6 text-sm text-muted">
+      <p className="mb-6 text-sm text-ink-dim">
         {open ? "Create your account, then join this semester's game from your dashboard." : "Account sign-ups are closed right now."}
       </p>
       <Flash searchParams={sp} />
@@ -24,7 +24,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           <div>
             <label className="label" htmlFor="registrationCode">Registration code</label>
             <input className="input uppercase" id="registrationCode" name="registrationCode" defaultValue={sp.code} required autoCapitalize="characters" />
-            <p className="mt-1 text-xs text-muted">Get this from the club officers.</p>
+            <p className="mt-1 text-xs text-ink-dim">Get this from the club officers.</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -43,7 +43,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           <div>
             <label className="label" htmlFor="puid">PUID</label>
             <input className="input" id="puid" name="puid" inputMode="numeric" required pattern="[0-9]{9}" maxLength={9} title="9 digits" />
-            <p className="mt-1 text-xs text-muted">Only visible to admins.</p>
+            <p className="mt-1 text-xs text-ink-dim">Only visible to admins.</p>
           </div>
           <div>
             <label className="label" htmlFor="username">Username</label>
@@ -60,8 +60,8 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           <button className="btn btn-primary w-full" type="submit">Create account</button>
         </form>
       )}
-      <p className="mt-4 text-center text-sm text-muted">
-        Played before? <Link href="/login" className="text-gold underline">Log in</Link> and join from your dashboard.
+      <p className="mt-4 text-center text-sm text-ink-dim">
+        Played before? <Link href="/login" className="text-accent underline">Log in</Link> and join from your dashboard.
       </p>
     </div>
   );

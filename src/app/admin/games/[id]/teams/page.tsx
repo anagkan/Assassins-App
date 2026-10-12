@@ -23,13 +23,13 @@ export default async function TeamsAdmin({ params, searchParams }: { params: Pro
         <div className="card mb-4 space-y-3">
           <h2 className="h-display text-xl">Unassigned players ({unassigned.length})</h2>
           {unassigned.length === 0 ? (
-            <p className="text-sm text-muted">Everyone is on a team.</p>
+            <p className="text-sm text-ink-dim">Everyone is on a team.</p>
           ) : (
             <>
-              <ul className="divide-y divide-line/60">
+              <ul className="divide-y divide-line">
                 {unassigned.map((p) => (
                   <li key={p.participantId} className="flex flex-wrap items-center gap-2 py-2 text-sm">
-                    <span className="flex-1">{p.displayName} <span className="text-muted">@{p.username}</span></span>
+                    <span className="flex-1">{p.displayName} <span className="text-ink-dim">@{p.username}</span></span>
                     <form action={teamAdminAction} className="flex gap-1">
                       {hidden}
                       <input type="hidden" name="op" value="move" />
@@ -59,7 +59,7 @@ export default async function TeamsAdmin({ params, searchParams }: { params: Pro
                   <input className="input w-24" id="size" name="size" type="number" min={1} max={game.maxTeamSize ?? undefined} defaultValue={game.maxTeamSize ?? 2} />
                 </div>
                 <button className="btn btn-primary">Auto-fill randomly</button>
-                <p className="w-full text-xs text-muted">Tops up existing teams that are under this size first, then forms new random teams.</p>
+                <p className="w-full text-xs text-ink-dim">Tops up existing teams that are under this size first, then forms new random teams.</p>
               </form>
             </>
           )}
@@ -74,17 +74,17 @@ export default async function TeamsAdmin({ params, searchParams }: { params: Pro
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="h-display flex-1 text-lg">{team.name}</h3>
               {!reg && <StatusPill status={team.status} />}
-              <span className="text-xs text-muted">{members.length} player{members.length === 1 ? "" : "s"} · {team.kills} kills</span>
+              <span className="text-xs text-ink-dim">{members.length} player{members.length === 1 ? "" : "s"} · {team.kills} kills</span>
             </div>
-            {reg && <p className="text-xs text-muted">Invite code <span className="font-mono text-gold">{team.inviteCode}</span></p>}
-            {targetName && <p className="text-sm">🎯 Hunting <b>{targetName}</b></p>}
+            {reg && <p className="text-xs text-ink-dim">Invite code <span className="font-mono text-accent">{team.inviteCode}</span></p>}
+            {targetName && <p className="text-sm">Hunting <b>{targetName}</b></p>}
 
             <ul className="space-y-2">
               {members.map((m) => (
                 <li key={m.participantId} className="flex flex-wrap items-center gap-2 text-sm">
                   <Avatar name={m.displayName} photo={m.photoPath} size={28} dead={m.status !== "alive"} />
-                  <span className={`flex-1 ${m.status !== "alive" ? "text-muted line-through" : ""}`}>
-                    {m.displayName} <span className="text-xs text-muted">@{m.username}</span>
+                  <span className={`flex-1 ${m.status !== "alive" ? "text-ink-dim line-through" : ""}`}>
+                    {m.displayName} <span className="text-xs text-ink-dim">@{m.username}</span>
                   </span>
                   {!reg && m.status !== "alive" && <StatusPill status={m.status} />}
                   {reg && (

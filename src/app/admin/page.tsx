@@ -45,12 +45,12 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
           const pending = g.status === "active" || g.status === "paused" ? pendingReports(db, g.id).length : 0;
           return (
             <li key={g.id} className="card flex flex-wrap items-center gap-3 py-3">
-              <Link href={`/admin/games/${g.id}`} className="h-display text-xl hover:text-gold">{g.name}</Link>
+              <Link href={`/admin/games/${g.id}`} className="h-display text-xl hover:text-accent">{g.name}</Link>
               <StatusPill status={g.status} />
               {pending > 0 && (
-                <Link href={`/admin/games/${g.id}/kills`} className="pill border-gold text-gold">{pending} pending kill{pending === 1 ? "" : "s"}</Link>
+                <Link href={`/admin/games/${g.id}/kills`} className="pill chip-warn">{pending} pending kill{pending === 1 ? "" : "s"}</Link>
               )}
-              <span className="text-xs text-muted">
+              <span className="text-xs text-ink-dim">
                 {s.players} players · {s.teams} teams · created {fmtDate(g.createdAt)}
               </span>
               {g.status === "draft" && (

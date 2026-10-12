@@ -28,11 +28,11 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
           <tbody>
             {rows.map(({ log, actor, game }) => (
               <tr key={log.id}>
-                <td className="whitespace-nowrap text-muted">{fmtDate(log.createdAt)}</td>
+                <td className="whitespace-nowrap text-ink-dim">{fmtDate(log.createdAt)}</td>
                 <td>{actor ?? "system"}</td>
-                <td className="text-muted">{game ?? "—"}</td>
+                <td className="text-ink-dim">{game ?? "—"}</td>
                 <td className="font-mono">{log.action}</td>
-                <td className="max-w-xs break-all font-mono text-muted">{log.payloadJson === "{}" ? "" : log.payloadJson}</td>
+                <td className="max-w-xs break-all font-mono text-ink-dim">{log.payloadJson === "{}" ? "" : log.payloadJson}</td>
               </tr>
             ))}
           </tbody>

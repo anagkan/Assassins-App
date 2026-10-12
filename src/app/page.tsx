@@ -79,14 +79,16 @@ function Notices({ items }: { items: Announcement[] }) {
       {items.map((a) => (
         <div
           key={a.id}
-          className={`rounded-xl border px-4 py-3 ${a.kind === "immunity" ? "border-gold bg-gold/10" : a.kind === "rule" ? "border-blood bg-blood-dim/20" : "border-line bg-panel"}`}
+          className="rounded-md border border-line bg-surface px-4 py-3"
         >
-          <div className="text-xs font-bold uppercase tracking-wider text-muted">
-            {a.kind === "immunity" ? "🛡 Immunity" : a.kind === "rule" ? "⚠ Rule" : "📣 Announcement"}
+          <div className="text-[0.78rem] text-ink-dim">
+            <span className={`pill uppercase tracking-[0.05em] ${a.kind === "immunity" ? "chip-ok" : a.kind === "rule" ? "chip-warn" : "chip-info"}`}>
+              {a.kind === "immunity" ? "Immunity" : a.kind === "rule" ? "Rule" : "Announcement"}
+            </span>
             {a.activeUntil && <span className="ml-2 font-normal normal-case">until {fmtDate(a.activeUntil)}</span>}
           </div>
           <div className="mt-0.5 font-semibold">{a.title}</div>
-          {a.body && <p className="mt-1 whitespace-pre-line text-sm text-muted">{a.body}</p>}
+          {a.body && <p className="mt-1 whitespace-pre-line text-sm text-ink-dim">{a.body}</p>}
         </div>
       ))}
     </div>
@@ -104,7 +106,7 @@ function JoinPanel({ game }: { game: Game }) {
   if (game.status !== "registration") {
     return (
       <div className="card">
-        <p>You aren&apos;t playing in this game. Follow along on the <Link href="/feed" className="text-gold underline">feed</Link>.</p>
+        <p>You aren&apos;t playing in this game. Follow along on the <Link href="/feed" className="text-accent underline">feed</Link>.</p>
       </div>
     );
   }
@@ -136,7 +138,7 @@ function RegistrationPanel({ game, teamId }: { game: Game; teamId: number | null
       <div className="card md:col-span-2">
         <p className="text-sm">
           You&apos;re signed up. The game hasn&apos;t started yet; your target will appear here when it does.{" "}
-          <span className="text-muted">{teamLimitText(game)}</span>
+          <span className="text-ink-dim">{teamLimitText(game)}</span>
         </p>
       </div>
 
@@ -149,7 +151,7 @@ function RegistrationPanel({ game, teamId }: { game: Game; teamId: number | null
           {!solo && (
             <div>
               <div className="label">Invite code. Share it with your teammates.</div>
-              <div className="font-mono text-2xl tracking-[0.3em] text-gold">{team.team.inviteCode}</div>
+              <div className="font-mono text-2xl tracking-[0.3em] text-accent">{team.team.inviteCode}</div>
             </div>
           )}
           <MemberList members={team.members} />
@@ -182,7 +184,7 @@ function RegistrationPanel({ game, teamId }: { game: Game; teamId: number | null
               <button className="btn">Join team</button>
             </form>
           )}
-          <p className="text-xs text-muted">
+          <p className="text-xs text-ink-dim">
             {solo
               ? "If you skip this, an admin will put you in when the game starts."
               : "No team? Do nothing and an admin can place you on one before the game starts."}
@@ -192,9 +194,9 @@ function RegistrationPanel({ game, teamId }: { game: Game; teamId: number | null
 
       <div className="card space-y-3 self-start">
         <h2 className="h-display text-xl">Before it starts</h2>
-        <ul className="list-disc space-y-1 pl-5 text-sm text-muted">
-          <li>Read the <Link href="/rules" className="text-gold underline">rules</Link> and safe zones.</li>
-          <li>Add a <Link href="/account" className="text-gold underline">photo</Link> so your hunters can recognize you. It&apos;s only fair.</li>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-ink-dim">
+          <li>Read the <Link href="/rules" className="text-accent underline">rules</Link> and safe zones.</li>
+          <li>Add a <Link href="/account" className="text-accent underline">photo</Link> so your hunters can recognize you. It&apos;s only fair.</li>
         </ul>
         <form action={leaveGameAction}>
           <input type="hidden" name="gameId" value={game.id} />
@@ -212,8 +214,8 @@ function MemberList({ members, showKills }: { members: Member[]; showKills?: boo
         <li key={m.participantId} className="flex items-center gap-3">
           <Avatar name={m.displayName} photo={m.photoPath} size={40} dead={m.status !== "alive"} />
           <div className="min-w-0 flex-1">
-            <div className={m.status !== "alive" ? "text-muted line-through" : ""}>{m.displayName}</div>
-            {showKills && <div className="text-xs text-muted">{m.kills} kill{m.kills === 1 ? "" : "s"}</div>}
+            <div className={m.status !== "alive" ? "text-ink-dim line-through" : ""}>{m.displayName}</div>
+            {showKills && <div className="text-xs text-ink-dim">{m.kills} kill{m.kills === 1 ? "" : "s"}</div>}
           </div>
           {m.status !== "alive" && <StatusPill status={m.status} />}
         </li>
@@ -229,15 +231,15 @@ function FinishedPanel({ game }: { game: Game }) {
       <div className="label">Game over</div>
       {winner ? (
         <>
-          <div className="h-display my-2 text-4xl text-gold">🏆 {winner.team.name}</div>
-          <p className="text-sm text-muted">{winner.members.map((m) => m.displayName).join(", ")}</p>
+          <div className="h-display my-2 text-4xl text-accent">{winner.team.name}</div>
+          <p className="text-sm text-ink-dim">{winner.members.map((m) => m.displayName).join(", ")}</p>
         </>
       ) : (
         <p className="my-2">The game has ended.</p>
       )}
       <p className="mt-4 text-sm">
-        <Link href="/leaderboard" className="text-gold underline">Final standings</Link> ·{" "}
-        <Link href="/feed" className="text-gold underline">Full feed</Link>
+        <Link href="/leaderboard" className="text-accent underline">Final standings</Link> ·{" "}
+        <Link href="/feed" className="text-accent underline">Full feed</Link>
       </p>
     </div>
   );
@@ -255,14 +257,14 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
     <div className="grid gap-4 md:grid-cols-5">
       <div className="space-y-4 md:col-span-3">
         {!teamAlive ? (
-          <div className="card border-blood text-center">
-            <div className="h-display text-3xl text-blood">{solo ? "You've been eliminated" : "Your team has been wiped out"}</div>
-            <p className="mt-2 text-sm text-muted">Thanks for playing. Keep watching the <Link href="/feed" className="underline">feed</Link>.</p>
+          <div className="rounded-lg bg-stop px-5 py-6 text-center text-stop-ink">
+            <div className="h-display text-3xl text-stop-ink">{solo ? "You've been eliminated" : "Your team has been wiped out"}</div>
+            <p className="mt-2 text-sm">Thanks for playing. Keep watching the <Link href="/feed" className="underline">feed</Link>.</p>
           </div>
         ) : target ? (
-          <div className="card border-blood/70">
+          <div className="card border-accent">
             <div className="flex items-baseline justify-between gap-2">
-              <div className="label text-blood">Your target{target.members.length > 1 ? " team" : ""}</div>
+              <div className="label text-accent">Your target{target.members.length > 1 ? " team" : ""}</div>
               {game.status === "paused" && <StatusPill status="paused" />}
             </div>
             {target.members.length > 1 && <div className="h-display mb-3 text-2xl">{target.team.name}</div>}
@@ -275,8 +277,8 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
               <MemberList members={target.members} />
             )}
             {deadline && (
-              <p className={`mt-4 text-sm ${deadline - Date.now() < 86_400_000 ? "text-blood" : "text-muted"}`}>
-                ⏳ {solo ? "You" : "Your team"} must get a kill {fmtRelative(deadline)} ({fmtDate(deadline)}) or risk being purged.
+              <p className={`mt-4 text-sm ${deadline - Date.now() < 86_400_000 ? "text-warn-ink" : "text-ink-dim"}`}>
+                {solo ? "You" : "Your team"} must get a kill {fmtRelative(deadline)} ({fmtDate(deadline)}) or risk being purged.
               </p>
             )}
           </div>
@@ -314,7 +316,7 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
           </form>
         )}
         {teamAlive && !iAmAlive && (
-          <div className="card text-sm text-muted">You&apos;re out, but your team is still alive. Cheer them on!</div>
+          <div className="card text-sm text-ink-dim">You&apos;re out, but your team is still alive. Cheer them on!</div>
         )}
       </div>
 
@@ -323,7 +325,7 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
           <div className="label">{solo ? "You" : "Your team"}</div>
           {!solo && <div className="h-display mb-3 text-xl">{myTeam.team.name}</div>}
           <MemberList members={myTeam.members} showKills />
-          <p className="mt-3 text-xs text-muted">{myTeam.team.kills} total kill{myTeam.team.kills === 1 ? "" : "s"}</p>
+          <p className="mt-3 text-xs text-ink-dim">{myTeam.team.kills} total kill{myTeam.team.kills === 1 ? "" : "s"}</p>
         </div>
 
         {teamReports.length > 0 && (
@@ -340,10 +342,10 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
                   {r.status === "pending" && r.assassinId === me.id && (
                     <form action={withdrawKillAction} className="ml-auto">
                       <input type="hidden" name="reportId" value={r.id} />
-                      <button className="text-xs text-muted underline">withdraw</button>
+                      <button className="text-xs text-ink-dim underline">withdraw</button>
                     </form>
                   )}
-                  {r.adminNote && r.status !== "pending" && <span className="w-full text-xs text-muted">“{r.adminNote}”</span>}
+                  {r.adminNote && r.status !== "pending" && <span className="w-full text-xs text-ink-dim">“{r.adminNote}”</span>}
                 </li>
               ))}
             </ul>

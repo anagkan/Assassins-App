@@ -11,7 +11,7 @@ export default async function KillQueue({ params, searchParams }: { params: Prom
   const db = getDb();
   const pending = pendingReports(db, game.id);
   const history = reportRows(db, game.id).filter((r) => r.status !== "pending");
-  const team = (name: string | null, person: string) => (name && name !== person ? <span className="text-muted"> ({name})</span> : null);
+  const team = (name: string | null, person: string) => (name && name !== person ? <span className="text-ink-dim"> ({name})</span> : null);
 
   return (
     <>
@@ -20,15 +20,15 @@ export default async function KillQueue({ params, searchParams }: { params: Prom
       {pending.length === 0 && <Empty>Nothing to review.</Empty>}
       <div className="space-y-3">
         {pending.map((r) => (
-          <div key={r.id} className={`card space-y-2 ${r.problem ? "border-muted" : "border-gold"}`}>
+          <div key={r.id} className={`card space-y-2 ${r.problem ? "border-warn-ink" : "border-line"}`}>
             <p className="text-lg">
-              <b>{r.killer}</b>{team(r.killerTeam, r.killer)} <span className="text-blood">🗡</span> <b>{r.victim}</b>{team(r.victimTeam, r.victim)}
+              <b>{r.killer}</b>{team(r.killerTeam, r.killer)} <span className="text-stop-ink">eliminated</span> <b>{r.victim}</b>{team(r.victimTeam, r.victim)}
             </p>
-            <p className="text-xs text-muted">
+            <p className="text-xs text-ink-dim">
               Happened {fmtDate(r.occurredAt)}{r.location && <> at {r.location}</>} · reported {fmtDate(r.createdAt)}
             </p>
-            {r.description && <p className="whitespace-pre-line rounded-lg bg-ink p-3 text-sm">{r.description}</p>}
-            {r.problem && <p className="text-sm text-gold">⚠ {r.problem} Approving will mark it stale.</p>}
+            {r.description && <p className="whitespace-pre-line rounded-sm bg-surface-sunken p-3 text-sm">{r.description}</p>}
+            {r.problem && <p className="rounded-sm bg-warn px-3 py-2 text-sm text-(--warn-chip-ink)">{r.problem} Approving will mark it stale.</p>}
             <form action={reviewKillAction} className="flex flex-wrap gap-2">
               <input type="hidden" name="gameId" value={game.id} />
               <input type="hidden" name="reportId" value={r.id} />
@@ -54,15 +54,15 @@ export default async function KillQueue({ params, searchParams }: { params: Prom
                 <tr key={r.id}>
                   <td><StatusPill status={r.status} /></td>
                   <td>{r.killer} → {r.victim}</td>
-                  <td className="whitespace-nowrap text-muted">{fmtDate(r.occurredAt)}</td>
-                  <td className="text-muted">{r.adminNote}</td>
+                  <td className="whitespace-nowrap text-ink-dim">{fmtDate(r.occurredAt)}</td>
+                  <td className="text-ink-dim">{r.adminNote}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-      <p className="mt-3 text-xs text-muted">To reverse an approved kill, revive the victim from Teams &amp; players.</p>
+      <p className="mt-3 text-xs text-ink-dim">To reverse an approved kill, revive the victim from Teams &amp; players.</p>
     </>
   );
 }

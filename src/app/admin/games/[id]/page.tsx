@@ -42,20 +42,20 @@ export default async function GameOverview({ params, searchParams }: { params: P
         <div className="card space-y-3 md:col-span-1">
           <h2 className="h-display text-xl">Status</h2>
           <dl className="grid grid-cols-2 gap-1 text-sm">
-            <dt className="text-muted">Players</dt><dd>{s.alivePlayers}/{s.players} alive</dd>
-            <dt className="text-muted">Teams</dt><dd>{s.aliveTeams}/{s.teams} alive</dd>
-            <dt className="text-muted">Mode</dt>
+            <dt className="text-ink-dim">Players</dt><dd>{s.alivePlayers}/{s.players} alive</dd>
+            <dt className="text-ink-dim">Teams</dt><dd>{s.aliveTeams}/{s.teams} alive</dd>
+            <dt className="text-ink-dim">Mode</dt>
             <dd>{game.maxTeamSize === 1 ? "Solo" : `Teams (${game.minTeamSize}–${game.maxTeamSize ?? "∞"})`}</dd>
           </dl>
           {problems.length > 0 && (
-            <div className="rounded-lg border border-blood p-2 text-xs text-blood">Ring problem: {problems.join(" ")}</div>
+            <div className="rounded-sm bg-stop p-2 text-xs text-stop-ink">Ring problem: {problems.join(" ")}</div>
           )}
 
           {(game.status === "draft" || game.status === "registration") && (
-            <div className="rounded-lg border border-line p-3">
+            <div className="rounded-md border border-line p-3">
               <div className="label">Join code</div>
-              <div className="font-mono text-2xl tracking-[0.3em] text-gold">{game.joinCode}</div>
-              <p className="mt-1 text-xs text-muted">Players enter this on their dashboard to join this game. Share it with the club.</p>
+              <div className="font-mono text-2xl tracking-[0.3em] text-accent">{game.joinCode}</div>
+              <p className="mt-1 text-xs text-ink-dim">Players enter this on their dashboard to join this game. Share it with the club.</p>
               <form action={gameStatusAction} className="mt-2">
                 <input type="hidden" name="gameId" value={game.id} />
                 <button name="op" value="joincode" className="btn btn-sm">Regenerate</button>
@@ -68,8 +68,8 @@ export default async function GameOverview({ params, searchParams }: { params: P
             {game.status === "draft" && <button name="op" value="open" className="btn btn-primary w-full">Open registration</button>}
             {game.status === "registration" && (
               <>
-                <div className="flex items-center justify-between gap-2 rounded-lg border border-line p-2 text-sm">
-                  <span>Sign-ups: <b className={game.signupsOpen ? "text-gold" : "text-blood"}>{game.signupsOpen ? "Open" : "Closed"}</b></span>
+                <div className="flex items-center justify-between gap-2 rounded-md border border-line p-2 text-sm">
+                  <span>Sign-ups: <b className={game.signupsOpen ? "text-ok-ink" : "text-stop-ink"}>{game.signupsOpen ? "Open" : "Closed"}</b></span>
                   {game.signupsOpen ? (
                     <button name="op" value="closesignups" className="btn btn-sm">Close sign-ups</button>
                   ) : (
@@ -77,7 +77,7 @@ export default async function GameOverview({ params, searchParams }: { params: P
                   )}
                 </div>
                 <button name="op" value="start" className="btn btn-primary w-full">Start game &amp; assign targets</button>
-                <p className="text-xs text-muted">Every player must be on a team first (see Teams &amp; players → auto-fill).</p>
+                <p className="text-xs text-ink-dim">Every player must be on a team first (see Teams &amp; players → auto-fill).</p>
               </>
             )}
             {game.status === "active" && <button name="op" value="pause" className="btn w-full">Pause game</button>}
@@ -107,7 +107,7 @@ export default async function GameOverview({ params, searchParams }: { params: P
             <input className="input" id="name" name="name" defaultValue={game.name} required />
           </div>
 
-          <fieldset disabled={teamsLocked} className="space-y-3 rounded-lg border border-line p-3 disabled:opacity-60">
+          <fieldset disabled={teamsLocked} className="space-y-3 rounded-md border border-line p-3 disabled:opacity-60">
             <legend className="label px-1">Teams {teamsLocked && "(locked once started)"}</legend>
             <div className="flex flex-wrap gap-4 text-sm">
               <label className="flex items-center gap-2">
