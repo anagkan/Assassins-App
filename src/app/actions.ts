@@ -131,9 +131,10 @@ export async function updateProfileAction(fd: FormData) {
     "/account",
     async () => {
       const db = getDb();
-      const displayName = str(fd, "displayName").trim().slice(0, 60);
-      if (!displayName) throw new G.GameError("Name can't be empty.");
-      db.update(users).set({ displayName }).where(eq(users.id, user.id)).run();
+      const firstName = str(fd, "firstName").trim().slice(0, 40);
+      const lastName = str(fd, "lastName").trim().slice(0, 40);
+      if (!firstName || !lastName) throw new G.GameError("Please enter your first and last name.");
+      db.update(users).set({ firstName, lastName, displayName: `${firstName} ${lastName}` }).where(eq(users.id, user.id)).run();
     },
     "Profile saved.",
   );

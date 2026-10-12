@@ -7,6 +7,10 @@ export const dynamic = "force-dynamic";
 export default async function AccountPage({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
   const user = await requireUser();
   const sp = await searchParams;
+  // Accounts created before sign-up collected names only have a display name.
+  const [first, ...rest] = user.displayName.split(" ");
+  const firstName = user.firstName ?? first;
+  const lastName = user.lastName ?? rest.join(" ");
   return (
     <>
       <PageTitle sub={`Signed in as @${user.username}`}>Profile</PageTitle>
@@ -15,9 +19,15 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <form action={updateProfileAction} className="card space-y-4">
           <h2 className="h-display text-xl">Name</h2>
           <Avatar name={user.displayName} size={72} />
-          <div>
-            <label className="label" htmlFor="displayName">Name</label>
-            <input className="input" id="displayName" name="displayName" defaultValue={user.displayName} maxLength={60} required />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="label" htmlFor="firstName">First name</label>
+              <input className="input" id="firstName" name="firstName" defaultValue={firstName} autoComplete="given-name" maxLength={40} required />
+            </div>
+            <div>
+              <label className="label" htmlFor="lastName">Last name</label>
+              <input className="input" id="lastName" name="lastName" defaultValue={lastName} autoComplete="family-name" maxLength={40} required />
+            </div>
           </div>
           <button className="btn btn-primary">Save profile</button>
         </form>
