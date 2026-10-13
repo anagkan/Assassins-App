@@ -98,11 +98,15 @@ export function fmtDate(ms: number | null | undefined) {
   });
 }
 
-export function fmtRelative(ms: number, now = Date.now()) {
-  const diff = ms - now;
-  const abs = Math.abs(diff);
+/** A length of time, e.g. "2d 3h", "4h 10m" or "5m". */
+export function fmtDuration(ms: number) {
+  const abs = Math.abs(ms);
   const h = Math.floor(abs / 3_600_000);
   const d = Math.floor(h / 24);
-  const text = d >= 1 ? `${d}d ${h % 24}h` : h >= 1 ? `${h}h ${Math.floor((abs % 3_600_000) / 60_000)}m` : `${Math.max(1, Math.floor(abs / 60_000))}m`;
-  return diff >= 0 ? `in ${text}` : `${text} ago`;
+  return d >= 1 ? `${d}d ${h % 24}h` : h >= 1 ? `${h}h ${Math.floor((abs % 3_600_000) / 60_000)}m` : `${Math.max(1, Math.floor(abs / 60_000))}m`;
+}
+
+export function fmtRelative(ms: number, now = Date.now()) {
+  const diff = ms - now;
+  return diff >= 0 ? `in ${fmtDuration(diff)}` : `${fmtDuration(diff)} ago`;
 }

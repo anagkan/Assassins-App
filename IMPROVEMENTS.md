@@ -96,12 +96,12 @@ Every one of them involves the victim. This app doesn't: victims never see a rep
 
 - [x] <a id="a3"></a>**A3. Default rules look saved when they aren't.** *Shipped: new games save the templates; older games with empty boxes show a "Template, not published" note.* The settings form fills empty Rules and Safe Zones boxes with `DEFAULT_RULES` / `DEFAULT_SAFE_ZONES` (`src/app/admin/games/[id]/page.tsx`). Until someone clicks Save, players see "The admins haven't posted rules yet." Save the defaults when the game is created, or label them "Template, not published."
 
-- [ ] <a id="a4"></a>**A4. The kill queue lacks context.** Would help to show:
+- [x] <a id="a4"></a>**A4. The kill queue lacks context.** *Shipped: earlier rejections, report delay, quick-reject reasons and Undo. Bulk approve was dropped: confirmed kills are already auto-approved, and "Mark all seen" clears them.* Would help to show:
   - ~~the victim's response (see [P1](#p1))~~ shipped with P1
-  - whether the killer's team has had other reports rejected
-  - time between kill and report
-  - quick-reject reasons ("safe zone", "no witness", "wrong target")
-  - bulk approve for confirmed kills
+  - ~~whether the killer's team has had other reports rejected~~
+  - ~~time between kill and report~~
+  - ~~quick-reject reasons~~ ("In a safe zone", "Against the rules", "Not enough detail"; the default rules allow kills with no witness, and the server already blocks wrong targets)
+  - ~~bulk approve for confirmed kills~~ not needed after P1
 
   Reversing a kill means going to Teams → Revive. An **Undo** button on recently approved kills would be easier.
 

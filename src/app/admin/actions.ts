@@ -153,12 +153,21 @@ export async function reviewKillAction(fd: FormData) {
   const admin = await requireAdmin();
   const id = int(fd, "gameId");
   const db = getDb();
-  const approve = str(fd, "decision") === "approve";
+  // "approve", "reject" or "reject:<quick reason>"; a typed note goes after the quick reason.
+  const [decision, reason = ""] = str(fd, "decision").split(/:(.*)/s);
+  const approve = decision === "approve";
+  const note = [reason, str(fd, "note").trim()].filter(Boolean).join(". ");
   await act(
     gamePath(id, "/kills"),
-    () => (approve ? G.approveKill(db, admin.id, int(fd, "reportId"), str(fd, "note") || undefined) : G.rejectKill(db, admin.id, int(fd, "reportId"), str(fd, "note"))),
+    () => (approve ? G.approveKill(db, admin.id, int(fd, "reportId"), note || undefined) : G.rejectKill(db, admin.id, int(fd, "reportId"), note)),
     (r) => (approve ? ((r as { stale: boolean }).stale ? "That report was out of date and has been marked stale." : "Kill approved.") : "Kill rejected."),
   );
+}
+
+export async function undoKillAction(fd: FormData) {
+  const admin = await requireAdmin();
+  const id = int(fd, "gameId");
+  await act(gamePath(id, "/kills"), () => G.undoKill(getDb(), admin.id, int(fd, "reportId")), "Kill undone. The victim is back in the game.");
 }
 
 export async function acknowledgeKillAction(fd: FormData) {

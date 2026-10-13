@@ -825,57 +825,80 @@ export function reshuffleAlive(db: DB, actorId: number | null, gameId: number) {
  * Reviving into a finished game re-opens it.
  */
 export function reviveParticipant(db: DB, actorId: number | null, participantId: number, insertBeforeTeamId?: number) {
+  db.transaction((tx) => reviveTx(tx, actorId, participantId, insertBeforeTeamId));
+}
+
+/**
+ * Reverse an approved kill: revive the victim and take back the kill credit. If the kill wiped
+ * out the victim's team, the team goes back where it was, between the killer and their new target.
+ */
+export function undoKill(db: DB, actorId: number | null, reportId: number) {
   db.transaction((tx) => {
-    const p = getParticipant(tx, participantId);
-    if (p.status === "alive") throw new GameError("That player is already alive.");
-    if (p.teamId == null) throw new GameError("That player has no team.");
-    let game = getGame(tx, p.gameId);
-    requireStatus(game, "active", "paused", "finished");
-    const team = getTeam(tx, p.teamId);
-    const at = now();
-
-    if (game.status === "finished") {
-      tx.update(games).set({ status: "active", endedAt: null, winnerTeamId: null }).where(eq(games.id, game.id)).run();
-      game = getGame(tx, game.id);
+    const r = tx.select().from(killReports).where(eq(killReports.id, reportId)).get();
+    if (!r) throw new GameError("Report not found.");
+    if (r.status !== "approved") throw new GameError(`That report is ${r.status}, not approved.`);
+    const victim = getParticipant(tx, r.victimId);
+    if (victim.status !== "eliminated" || victim.eliminatedById !== r.assassinId) {
+      throw new GameError("That kill can't be undone any more: the victim's status has changed since.");
     }
-
-    if (team.status !== "alive") {
-      const ring = loadRing(tx, game.id);
-      const alive = tx.select().from(teams).where(and(eq(teams.gameId, game.id), eq(teams.status, "alive"))).all();
-      if (alive.length === 0) throw new GameError("No teams left to rejoin.");
-      if (alive.length === 1) {
-        ring.set(alive[0].id, team.id);
-        ring.set(team.id, alive[0].id);
-      } else {
-        const before = insertBeforeTeamId ?? shuffle(alive.map((t) => t.id))[0];
-        if (!ring.has(before)) throw new GameError("Pick an alive team to insert before.");
-        insertIntoRing(ring, team.id, before);
-      }
-      tx.update(teams)
-        .set({ status: "alive", eliminatedAt: null, eliminatedByTeamId: null, activityAt: at })
-        .where(eq(teams.id, team.id))
-        .run();
-      saveRing(tx, game.id, ring);
-    }
-    tx.update(participants)
-      .set({ status: "alive", eliminatedAt: null, eliminatedById: null })
-      .where(eq(participants.id, p.id))
-      .run();
-    // If they were killed via an approved report, undo the kill credit.
-    if (p.eliminatedById != null) {
-      const killer = getParticipant(tx, p.eliminatedById);
-      tx.update(participants).set({ kills: Math.max(0, killer.kills - 1) }).where(eq(participants.id, killer.id)).run();
-      if (killer.teamId != null) {
-        const kt = getTeam(tx, killer.teamId);
-        tx.update(teams).set({ kills: Math.max(0, kt.kills - 1) }).where(eq(teams.id, kt.id)).run();
-      }
-      tx.update(killReports)
-        .set({ status: "rejected", reviewedBy: actorId, reviewedAt: at, adminNote: "Reversed: victim revived" })
-        .where(and(eq(killReports.victimId, p.id), eq(killReports.status, "approved")))
-        .run();
-    }
-    audit(tx, actorId, game.id, "admin.revive", { participantId, insertBeforeTeamId });
+    const killer = getParticipant(tx, r.assassinId);
+    const killerTeam = killer.teamId != null ? getTeam(tx, killer.teamId) : undefined;
+    const before = killerTeam?.status === "alive" && killerTeam.targetTeamId !== victim.teamId ? killerTeam.targetTeamId : null;
+    reviveTx(tx, actorId, victim.id, before ?? undefined);
+    audit(tx, actorId, r.gameId, "kill.undo", { reportId });
   });
+}
+
+function reviveTx(tx: Tx, actorId: number | null, participantId: number, insertBeforeTeamId?: number) {
+  const p = getParticipant(tx, participantId);
+  if (p.status === "alive") throw new GameError("That player is already alive.");
+  if (p.teamId == null) throw new GameError("That player has no team.");
+  let game = getGame(tx, p.gameId);
+  requireStatus(game, "active", "paused", "finished");
+  const team = getTeam(tx, p.teamId);
+  const at = now();
+
+  if (game.status === "finished") {
+    tx.update(games).set({ status: "active", endedAt: null, winnerTeamId: null }).where(eq(games.id, game.id)).run();
+    game = getGame(tx, game.id);
+  }
+
+  if (team.status !== "alive") {
+    const ring = loadRing(tx, game.id);
+    const alive = tx.select().from(teams).where(and(eq(teams.gameId, game.id), eq(teams.status, "alive"))).all();
+    if (alive.length === 0) throw new GameError("No teams left to rejoin.");
+    if (alive.length === 1) {
+      ring.set(alive[0].id, team.id);
+      ring.set(team.id, alive[0].id);
+    } else {
+      const before = insertBeforeTeamId ?? shuffle(alive.map((t) => t.id))[0];
+      if (!ring.has(before)) throw new GameError("Pick an alive team to insert before.");
+      insertIntoRing(ring, team.id, before);
+    }
+    tx.update(teams)
+      .set({ status: "alive", eliminatedAt: null, eliminatedByTeamId: null, activityAt: at })
+      .where(eq(teams.id, team.id))
+      .run();
+    saveRing(tx, game.id, ring);
+  }
+  tx.update(participants)
+    .set({ status: "alive", eliminatedAt: null, eliminatedById: null })
+    .where(eq(participants.id, p.id))
+    .run();
+  // If they were killed via an approved report, undo the kill credit.
+  if (p.eliminatedById != null) {
+    const killer = getParticipant(tx, p.eliminatedById);
+    tx.update(participants).set({ kills: Math.max(0, killer.kills - 1) }).where(eq(participants.id, killer.id)).run();
+    if (killer.teamId != null) {
+      const kt = getTeam(tx, killer.teamId);
+      tx.update(teams).set({ kills: Math.max(0, kt.kills - 1) }).where(eq(teams.id, kt.id)).run();
+    }
+    tx.update(killReports)
+      .set({ status: "rejected", reviewedBy: actorId, reviewedAt: at, adminNote: "Reversed: victim revived" })
+      .where(and(eq(killReports.victimId, p.id), eq(killReports.status, "approved")))
+      .run();
+  }
+  audit(tx, actorId, game.id, "admin.revive", { participantId, insertBeforeTeamId });
 }
 
 /** Ring problems for the admin page; an empty list means everything is consistent. */

@@ -25,16 +25,16 @@ Click **Start game & assign targets**. This only works once everyone is on a tea
 
 ## 4. During the game
 - **Kill queue.** Check it daily. When a kill is reported, the victim sees it on their dashboard and can **confirm** or **dispute** it.
-  - A confirmed kill is approved automatically. It appears under **Confirmed by the victim** (and counts in the tab badge) until you click **Got it**. If one looks wrong, revive the victim.
+  - A confirmed kill is approved automatically. It appears under **Confirmed by the victim** (and counts in the tab badge) until you click **Got it**. If one looks wrong, click **Undo**.
   - A disputed kill stays pending and shows the victim's side of the story. Approve or reject it as usual.
-  - Reports the victim hasn't answered yet can be approved or rejected too, optionally with a note the player will see. If a report shows ⚠, it's out of date (for example, the victim was already out), and approving it just marks it stale.
+  - Reports the victim hasn't answered yet can be approved or rejected too, optionally with a note the player will see. The quick buttons under each report ("In a safe zone", "Against the rules", "Not enough detail") reject it with that reason. Each report also shows how long after the kill it was filed, and warns you if the killer's team has had reports rejected before. If a report shows ⚠, it's out of date (for example, the victim was already out), and approving it just marks it stale.
 - **Announcements.** Post daily immunities ("immune while wearing a hat"), rules of the day, or general news. Give each one a start and end time, and it shows highlighted on everyone's dashboard while it's active.
 - **Ring & inactivity.** This page shows the full target loop. **Don't screen-share it.** If you set an inactivity limit, overdue teams appear here. Untick anyone you want to spare, then click **Purge selected**.
 - **Pause / Resume.** Use these for breaks and exams. Inactivity clocks freeze while the game is paused, and no kills can be reported.
 - **Reshuffle.** Gives every alive team a new random target. Use it to shake things up or after a messy dispute. You'll be asked to type the game's name first, since it voids every pending report.
 
 ### Fixing mistakes
-- **Wrong kill approved?** Go to **Teams & players**, find the victim, and click **Revive**. If their whole team had been knocked out, choose which team they should hunt. Reviving even reopens a game that already ended.
+- **Wrong kill approved?** Click **Undo** next to it in the kill queue's History. The victim comes back and, if their team had been knocked out, slots back in where it was. If Undo isn't offered (say, the victim was removed later), go to **Teams & players**, find the victim, and click **Revive**. If their whole team had been knocked out, choose which team they should hunt. Reviving even reopens a game that already ended.
 - **Someone drops out or breaks the rules?** Click **Remove** next to the player, or **Remove team**. Their hunter automatically inherits their target.
 - **Forgotten password?** Go to **Admin → Users → Reset password** and send the player the temporary password privately. It's shown once, next to their row, and disappears when you leave the page. They'll be asked to change it.
 - Every admin action is recorded in **Admin → Audit log**.

@@ -1,4 +1,4 @@
-import { aliasedTable, and, asc, desc, eq, gt, inArray, isNull, lte, or } from "drizzle-orm";
+import { aliasedTable, and, asc, count, desc, eq, gt, inArray, isNull, lte, or } from "drizzle-orm";
 import type { DB } from "@/db";
 import { announcements, killReports, participants, teams, users, type Game, type Team } from "@/db/schema";
 import { getParticipantForUser, reportProblem } from "./game";
@@ -256,6 +256,18 @@ export function unseenConfirmedReports(db: DB, gameId: number) {
   return reportRows(db, gameId, "approved").filter((r) => r.victimResponse === "confirmed" && r.adminSeenAt == null);
 }
 
+/** How many of each team's kill reports admins have rejected, keyed by team id. */
+export function rejectedCountsByTeam(db: DB, gameId: number): Map<number, number> {
+  const rows = db
+    .select({ teamId: participants.teamId, n: count() })
+    .from(killReports)
+    .innerJoin(participants, eq(participants.id, killReports.assassinId))
+    .where(and(eq(killReports.gameId, gameId), eq(killReports.status, "rejected")))
+    .groupBy(participants.teamId)
+    .all();
+  return new Map(rows.filter((r) => r.teamId != null).map((r) => [r.teamId!, r.n]));
+}
+
 export function reportRows(db: DB, gameId: number, status?: "pending" | "approved" | "rejected" | "stale", limit = 200) {
   const victimP = aliasedTable(participants, "victim_p");
   const victimU = aliasedTable(users, "victim_u");
@@ -278,10 +290,15 @@ export function reportRows(db: DB, gameId: number, status?: "pending" | "approve
       victimNote: killReports.victimNote,
       victimRespondedAt: killReports.victimRespondedAt,
       adminSeenAt: killReports.adminSeenAt,
+      assassinId: killReports.assassinId,
       killer: killerU.displayName,
+      killerTeamId: killerP.teamId,
       killerTeam: killerT.name,
+      victimId: killReports.victimId,
       victim: victimU.displayName,
       victimTeam: victimT.name,
+      victimStatus: victimP.status,
+      victimEliminatedById: victimP.eliminatedById,
     })
     .from(killReports)
     .innerJoin(victimP, eq(victimP.id, killReports.victimId))

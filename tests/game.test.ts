@@ -238,6 +238,37 @@ describe("admin corrections", () => {
     assertRingValid(db, gameId);
   });
 
+  it("undoing a kill puts the wiped team back where it was in the ring", () => {
+    const db = freshDb();
+    const { gameId } = setupGame(db, [1, 1, 1, 1]);
+    G.startGame(db, null, gameId);
+    const hunter = aliveTeams(db, gameId)[0];
+    const victimTeam = db.select().from(teams).where(eq(teams.id, hunter.targetTeamId!)).get()!;
+    const assassin = aliveMembers(db, hunter.id)[0];
+    const r = G.submitKill(db, gameId, assassin.userId, aliveMembers(db, victimTeam.id)[0].id);
+    G.approveKill(db, 0, r.id);
+    G.undoKill(db, 0, r.id);
+    expect(db.select().from(teams).where(eq(teams.id, hunter.id)).get()!.targetTeamId).toBe(victimTeam.id);
+    expect(db.select().from(teams).where(eq(teams.id, victimTeam.id)).get()!.targetTeamId).toBe(victimTeam.targetTeamId);
+    expect(db.select().from(teams).where(eq(teams.id, hunter.id)).get()!.kills).toBe(0);
+    expect(db.select().from(killReports).where(eq(killReports.id, r.id)).get()!.status).toBe("rejected");
+    assertRingValid(db, gameId);
+    expect(() => G.undoKill(db, 0, r.id)).toThrow(/not approved/);
+  });
+
+  it("won't undo a kill once the victim's status has changed", () => {
+    const db = freshDb();
+    const { gameId } = setupGame(db, [2, 2, 2]);
+    G.startGame(db, null, gameId);
+    const hunter = aliveTeams(db, gameId)[0];
+    const assassin = aliveMembers(db, hunter.id)[0];
+    const victim = aliveMembers(db, hunter.targetTeamId!)[0];
+    const r = G.submitKill(db, gameId, assassin.userId, victim.id);
+    G.approveKill(db, 0, r.id);
+    db.update(participants).set({ status: "purged" }).where(eq(participants.id, victim.id)).run();
+    expect(() => G.undoKill(db, 0, r.id)).toThrow(/can't be undone/);
+  });
+
   it("reshuffle keeps a valid ring", () => {
     const db = freshDb();
     const { gameId } = setupGame(db, [1, 3, 2, 1, 1]);
