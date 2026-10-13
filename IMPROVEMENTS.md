@@ -113,7 +113,7 @@ Every one of them involves the victim. This app doesn't: victims never see a rep
 
 ### Medium
 
-- [ ] <a id="a6"></a>**A6. Announcements can't be edited**, only deleted and reposted. Add edit, duplicate, and recurring schedules for daily immunities.
+- [x] <a id="a6"></a>**A6. Announcements can't be edited**, only deleted and reposted. *Shipped: edit and duplicate links, and a Repeat option that posts one copy per ticked weekday up to an end date; a series can be deleted from any day onwards.* Add edit, duplicate, and recurring schedules for daily immunities.
 - [ ] <a id="a7"></a>**A7. The Teams page won't scale.** No search or filter, and every member row has its own Move/Remove/Revive form. At 60+ players it's a wall of dropdowns. Add search, an alive/out filter, maybe a single player-table view.
 - [ ] <a id="a8"></a>**A8. The audit log is raw JSON** (`{"participantId":12}`) with no game filter. Render sentences ("Anna removed Bob (reason: inactivity)") and filter by game and action.
 - [ ] <a id="a9"></a>**A9. No data export.** CSV of players (name, NetID, team, status) and kill history, for club records and officer handover.

@@ -4,7 +4,8 @@ import { and, eq, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
-import { ANNOUNCEMENT_KINDS, announcements, users } from "@/db/schema";
+import { users } from "@/db/schema";
+import * as A from "@/lib/announcements";
 import { createUser, resetPassword, setRegistrationCode } from "@/lib/auth";
 import { act, int, optInt, str } from "@/lib/flash";
 import * as G from "@/lib/game";
@@ -205,27 +206,25 @@ export async function announcementAction(fd: FormData) {
   const admin = await requireAdmin();
   const id = int(fd, "gameId");
   const db = getDb();
+  const op = str(fd, "op");
   await act(
     gamePath(id, "/announcements"),
     () => {
-      if (str(fd, "op") === "delete") {
-        db.delete(announcements).where(and(eq(announcements.id, int(fd, "announcementId")), eq(announcements.gameId, id))).run();
-        G.audit(db, admin.id, id, "announcement.delete", { id: int(fd, "announcementId") });
-        return;
-      }
-      const kind = str(fd, "kind") as (typeof ANNOUNCEMENT_KINDS)[number];
-      if (!ANNOUNCEMENT_KINDS.includes(kind)) throw new G.GameError("Invalid type.");
-      const title = str(fd, "title").trim().slice(0, 200);
-      if (!title) throw new G.GameError("Title is required.");
-      const activeFrom = parseLocal(str(fd, "activeFrom")) ?? Date.now();
-      const activeUntil = parseLocal(str(fd, "activeUntil"));
-      if (activeUntil != null && activeUntil <= activeFrom) throw new G.GameError("End must be after start.");
-      db.insert(announcements)
-        .values({ gameId: id, kind, title, body: str(fd, "body").slice(0, 2000), activeFrom, activeUntil, createdBy: admin.id, createdAt: Date.now() })
-        .run();
-      G.audit(db, admin.id, id, "announcement.create", { kind, title });
+      if (op === "delete" || op === "deleteLater") return A.deleteAnnouncement(db, admin.id, id, int(fd, "announcementId"), op === "deleteLater");
+      const input: A.AnnouncementInput = {
+        kind: str(fd, "kind"),
+        title: str(fd, "title"),
+        body: str(fd, "body"),
+        activeFrom: parseLocal(str(fd, "activeFrom")),
+        activeUntil: parseLocal(str(fd, "activeUntil")),
+      };
+      if (op === "update") return A.updateAnnouncement(db, admin.id, id, int(fd, "announcementId"), input);
+      const weekdays = fd.getAll("repeatDay").map(Number).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6);
+      const until = str(fd, "repeatUntil");
+      if (weekdays.length && !until) throw new G.GameError("Pick a date to repeat until.");
+      return A.createAnnouncement(db, admin.id, id, input, weekdays.length ? { weekdays, until: parseLocal(`${until}T00:00`)! } : undefined);
     },
-    "Saved.",
+    (r) => (op === "update" ? "Changes saved." : op === "create" ? (r === 1 ? "Posted." : `Posted ${r} copies.`) : r === 1 ? "Deleted." : `Deleted ${r} copies.`),
   );
 }
 

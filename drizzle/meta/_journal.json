@@ -43,6 +43,13 @@
       "when": 1791852705543,
       "tag": "0005_victim_response",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1791857219575,
+      "tag": "0006_announcement_series",
+      "breakpoints": true
     }
   ]
 }

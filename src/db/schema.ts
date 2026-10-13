@@ -149,6 +149,8 @@ export const announcements = sqliteTable(
     body: text("body").notNull().default(""),
     activeFrom: integer("active_from").notNull(),
     activeUntil: integer("active_until"),
+    // Copies made by "repeat on these days" share the id of the first one, so they can be deleted together.
+    seriesId: integer("series_id"),
     createdBy: integer("created_by"),
     createdAt: integer("created_at").notNull(),
   },
