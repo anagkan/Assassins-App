@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { SubmitButton } from "@/components/SubmitButton";
 import { Flash } from "@/components/ui";
 import { getDb } from "@/db";
 import { getRegistrationCode } from "@/lib/auth";
@@ -57,7 +58,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
             <label className="label" htmlFor="confirm">Confirm password</label>
             <input className="input" id="confirm" name="confirm" type="password" autoComplete="new-password" minLength={8} required />
           </div>
-          <button className="btn btn-primary w-full" type="submit">Create account</button>
+          <SubmitButton className="btn btn-primary w-full" pendingLabel="Creating account…">Create account</SubmitButton>
         </form>
       )}
       <p className="mt-4 text-center text-sm text-ink-dim">

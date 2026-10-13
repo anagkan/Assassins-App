@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { SubmitButton } from "@/components/SubmitButton";
 import { Flash } from "@/components/ui";
 import { getCurrentUser } from "@/lib/session";
 import { loginAction } from "../actions";
@@ -21,7 +22,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <label className="label" htmlFor="password">Password</label>
           <input className="input" id="password" name="password" type="password" autoComplete="current-password" required />
         </div>
-        <button className="btn btn-primary w-full" type="submit">Log in</button>
+        <SubmitButton className="btn btn-primary w-full" pendingLabel="Logging in…">Log in</SubmitButton>
       </form>
       <p className="mt-4 text-center text-sm text-ink-dim">
         New this semester? <Link href="/register" className="text-accent underline">Create an account</Link>
