@@ -7,17 +7,25 @@ import { users } from "@/db/schema";
 import { checkRegistrationCode, createUser, setPassword, verifyLogin } from "@/lib/auth";
 import { act, int, str } from "@/lib/flash";
 import * as G from "@/lib/game";
-import { rateLimit } from "@/lib/rateLimit";
+import { clear, hit, isLimited, rateLimit } from "@/lib/rateLimit";
 import { clientIp, endSession, requireUser, startSession } from "@/lib/session";
 
 export async function loginAction(fd: FormData) {
   const username = str(fd, "username");
   const ip = await clientIp();
-  if (!rateLimit(`login:ip:${ip}`, 20, 15 * 60_000) || !rateLimit(`login:user:${username.toLowerCase()}`, 8, 15 * 60_000)) {
-    redirect(`/login?error=${encodeURIComponent("Too many attempts. Try again in a few minutes.")}`);
+  // Only failed attempts count, so switching between accounts never locks anyone out.
+  const ipKey = `login:ip:${ip}`;
+  const userKey = `login:user:${username.toLowerCase()}`;
+  if (isLimited(ipKey, 20) || isLimited(userKey, 8)) {
+    redirect(`/login?error=${encodeURIComponent("Too many failed attempts. Try again in a few minutes.")}`);
   }
   const user = await verifyLogin(getDb(), username, str(fd, "password"));
-  if (!user) redirect(`/login?error=${encodeURIComponent("Wrong username or password.")}`);
+  if (!user) {
+    hit(ipKey, 15 * 60_000);
+    hit(userKey, 15 * 60_000);
+    redirect(`/login?error=${encodeURIComponent("Wrong username or password.")}`);
+  }
+  clear(userKey);
   await startSession(user.id);
   if (user.mustChangePassword) redirect("/account?error=" + encodeURIComponent("Please choose a new password."));
   redirect(user.isAdmin ? "/admin" : "/");
