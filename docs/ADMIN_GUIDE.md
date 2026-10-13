@@ -36,7 +36,7 @@ Click **Start game & assign targets**. This only works once everyone is on a tea
 ### Fixing mistakes
 - **Wrong kill approved?** Go to **Teams & players**, find the victim, and click **Revive**. If their whole team had been knocked out, choose which team they should hunt. Reviving even reopens a game that already ended.
 - **Someone drops out or breaks the rules?** Click **Remove** next to the player, or **Remove team**. Their hunter automatically inherits their target.
-- **Forgotten password?** Go to **Admin → Users → Reset password** and send the player the temporary password privately. They'll be asked to change it.
+- **Forgotten password?** Go to **Admin → Users → Reset password** and send the player the temporary password privately. It's shown once, next to their row, and disappears when you leave the page. They'll be asked to change it.
 - Every admin action is recorded in **Admin → Audit log**.
 
 ## 5. Ending

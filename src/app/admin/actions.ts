@@ -1,6 +1,7 @@
 "use server";
 
 import { and, eq, ne } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
 import { ANNOUNCEMENT_KINDS, announcements, users } from "@/db/schema";
@@ -8,6 +9,7 @@ import { createUser, resetPassword, setRegistrationCode } from "@/lib/auth";
 import { act, int, optInt, str } from "@/lib/flash";
 import * as G from "@/lib/game";
 import { requireAdmin } from "@/lib/session";
+import type { PasswordResult } from "./users/PasswordForm";
 
 const gamePath = (id: number, sub = "") => `/admin/games/${id}${sub}`;
 
@@ -233,37 +235,41 @@ export async function userAdminAction(fd: FormData) {
   const admin = await requireAdmin();
   const db = getDb();
   const op = str(fd, "op");
-  let temp = "";
   await act(
     "/admin/users",
-    async () => {
-      const userId = op === "create" ? 0 : int(fd, "userId");
-      switch (op) {
-        case "reset":
-          temp = await resetPassword(db, admin.id, userId);
-          return;
-        case "promote":
-        case "demote": {
-          if (op === "demote") {
-            if (userId === admin.id) throw new G.GameError("You can't remove your own admin rights.");
-            const others = db.select().from(users).where(and(eq(users.isAdmin, true), ne(users.id, userId))).all();
-            if (others.length === 0) throw new G.GameError("There must be at least one admin.");
-          }
-          db.update(users).set({ isAdmin: op === "promote" }).where(eq(users.id, userId)).run();
-          G.audit(db, admin.id, null, `admin.${op}`, { userId });
-          return;
-        }
-        case "create": {
-          temp = `${G.randomCode(4)}-${G.randomCode(4)}`.toLowerCase();
-          const u = await createUser(db, { username: str(fd, "username"), displayName: str(fd, "displayName"), password: temp });
-          db.update(users).set({ mustChangePassword: true }).where(eq(users.id, u.id)).run();
-          G.audit(db, admin.id, null, "admin.create_user", { userId: u.id });
-          return;
-        }
-        default:
-          throw new G.GameError("Unknown action.");
+    () => {
+      const userId = int(fd, "userId");
+      if (op !== "promote" && op !== "demote") throw new G.GameError("Unknown action.");
+      if (op === "demote") {
+        if (userId === admin.id) throw new G.GameError("You can't remove your own admin rights.");
+        const others = db.select().from(users).where(and(eq(users.isAdmin, true), ne(users.id, userId))).all();
+        if (others.length === 0) throw new G.GameError("There must be at least one admin.");
       }
+      db.update(users).set({ isAdmin: op === "promote" }).where(eq(users.id, userId)).run();
+      G.audit(db, admin.id, null, `admin.${op}`, { userId });
     },
-    () => (temp ? `Temporary password: ${temp} (share it privately; they'll be asked to change it).` : "Done."),
+    "Done.",
   );
+}
+
+/** Reset a password or create an account. Returns the temporary password rather than redirecting with it. */
+export async function userPasswordAction(_prev: PasswordResult, fd: FormData): Promise<PasswordResult> {
+  const admin = await requireAdmin();
+  const db = getDb();
+  try {
+    if (str(fd, "op") === "create") {
+      const password = `${G.randomCode(4)}-${G.randomCode(4)}`.toLowerCase();
+      const u = await createUser(db, { username: str(fd, "username"), displayName: str(fd, "displayName"), password });
+      db.update(users).set({ mustChangePassword: true }).where(eq(users.id, u.id)).run();
+      G.audit(db, admin.id, null, "admin.create_user", { userId: u.id });
+      revalidatePath("/admin/users");
+      return { ok: true, message: `Created @${u.username}.`, password };
+    }
+    const password = await resetPassword(db, admin.id, int(fd, "userId"));
+    return { ok: true, message: "Password reset.", password };
+  } catch (e) {
+    if (e instanceof G.GameError) return { ok: false, message: e.message };
+    console.error(e);
+    return { ok: false, message: "Something went wrong. Please try again." };
+  }
 }

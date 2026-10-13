@@ -4,7 +4,8 @@ import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import { requireAdmin } from "@/lib/session";
 import { AdminNav } from "../AdminNav";
-import { userAdminAction } from "../actions";
+import { userAdminAction, userPasswordAction } from "../actions";
+import { PasswordForm } from "./PasswordForm";
 
 export default async function UsersAdmin({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; q?: string }> }) {
   const me = await requireAdmin();
@@ -23,12 +24,14 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
           <input className="input" name="q" defaultValue={sp.q} placeholder="Search name, username, NetID or PUID" />
           <button className="btn">Search</button>
         </form>
-        <form action={userAdminAction} className="card flex flex-wrap gap-2">
-          <input type="hidden" name="op" value="create" />
-          <input className="input flex-1" name="displayName" placeholder="Name" required />
-          <input className="input flex-1" name="username" placeholder="username" required />
-          <button className="btn">Create account</button>
-        </form>
+        <div className="card flex flex-wrap gap-2">
+          <PasswordForm action={userPasswordAction} className="flex flex-1 flex-wrap gap-2">
+            <input type="hidden" name="op" value="create" />
+            <input className="input flex-1" name="displayName" placeholder="Name" required />
+            <input className="input flex-1" name="username" placeholder="username" required />
+            <button className="btn">Create account</button>
+          </PasswordForm>
+        </div>
       </div>
       <div className="card overflow-x-auto">
         <table className="table">
@@ -45,10 +48,10 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
                 <td className="whitespace-nowrap text-ink-dim">{fmtDate(u.createdAt)}</td>
                 <td>{u.isAdmin ? <span className="pill chip-info">admin</span> : "player"}</td>
                 <td className="flex flex-wrap justify-end gap-1">
-                  <form action={userAdminAction}>
+                  <PasswordForm action={userPasswordAction}>
                     <input type="hidden" name="userId" value={u.id} />
                     <button name="op" value="reset" className="btn btn-sm">Reset password</button>
-                  </form>
+                  </PasswordForm>
                   {u.id !== me.id && (
                     <form action={userAdminAction}>
                       <input type="hidden" name="userId" value={u.id} />
