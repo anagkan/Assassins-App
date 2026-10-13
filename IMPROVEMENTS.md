@@ -105,7 +105,7 @@ Every one of them involves the victim. This app doesn't: victims never see a rep
 
   Reversing a kill means going to Teams → Revive. An **Undo** button on recently approved kills would be easier.
 
-- [ ] <a id="a5"></a>**A5. Nothing shows what's blocking the start.** `startGame` (`src/lib/game.ts`) fails on the first problem it finds, one at a time. Show a checklist in the Status box instead:
+- [x] <a id="a5"></a>**A5. Nothing shows what's blocking the start.** *Shipped: a "Ready to start?" checklist that `startGame` shares, so it reports every problem at once. The registration code was left out: it's for account sign-ups, not this game.* `startGame` (`src/lib/game.ts`) fails on the first problem it finds, one at a time. Show a checklist in the Status box instead:
   - ✓ registration code set
   - ✗ 4 players have no team
   - ✗ "Team Foo" is below the minimum size

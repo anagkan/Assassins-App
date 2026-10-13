@@ -219,35 +219,75 @@ export function setSignupsOpen(db: DB, actorId: number | null, gameId: number, o
   });
 }
 
+export interface StartCheck {
+  ok: boolean;
+  /** Blocking checks stop the game from starting; the rest are advice. */
+  blocking: boolean;
+  text: string;
+}
+
+/** Everything `startGame` checks, all at once, so admins can see what's left to fix. */
+export function startChecklist(c: Conn, gameId: number): StartCheck[] {
+  const game = getGame(c, gameId);
+  const ps = c.select().from(participants).where(eq(participants.gameId, gameId)).all();
+  const sizes = new Map<number, number>();
+  for (const p of ps) if (p.teamId != null) sizes.set(p.teamId, (sizes.get(p.teamId) ?? 0) + 1);
+  // Empty teams are dropped at the start, so they don't count.
+  const live = c.select().from(teams).where(eq(teams.gameId, gameId)).all().filter((t) => sizes.has(t.id));
+  const checks: StartCheck[] = [];
+
+  const unassigned = ps.filter((p) => p.teamId == null).length;
+  checks.push(
+    unassigned
+      ? { ok: false, blocking: true, text: `${unassigned} player(s) aren't on a team yet. Use auto-fill or assign them before starting.` }
+      : { ok: ps.length > 0, blocking: true, text: ps.length ? "Every player is on a team." : "No players have joined yet." },
+  );
+  let sizesOk = true;
+  for (const t of live) {
+    const n = sizes.get(t.id)!;
+    if (n < game.minTeamSize) {
+      sizesOk = false;
+      checks.push({ ok: false, blocking: true, text: `Team "${t.name}" has ${n} player(s); the minimum is ${game.minTeamSize}.` });
+    }
+    if (game.maxTeamSize != null && n > game.maxTeamSize) {
+      sizesOk = false;
+      checks.push({ ok: false, blocking: true, text: `Team "${t.name}" has ${n} players; the maximum is ${game.maxTeamSize}.` });
+    }
+  }
+  if (sizesOk && live.length) checks.push({ ok: true, blocking: true, text: "Every team is within the size limits." });
+  checks.push(
+    live.length < 2
+      ? { ok: false, blocking: true, text: "You need at least 2 teams to start." }
+      : live.length < 3
+        ? { ok: false, blocking: false, text: "Only 2 teams: they will be hunting each other." }
+        : { ok: true, blocking: true, text: `${live.length} teams ready.` },
+  );
+  checks.push({ ok: !!game.rulesMarkdown.trim(), blocking: false, text: game.rulesMarkdown.trim() ? "Rules published." : "No rules published yet." });
+  checks.push({
+    ok: !!game.safeZonesMarkdown.trim(),
+    blocking: false,
+    text: game.safeZonesMarkdown.trim() ? "Safe zones published." : "No safe zones published yet.",
+  });
+  return checks;
+}
+
 /** Validates teams and builds the ring. Returns non-fatal warnings. */
 export function startGame(db: DB, actorId: number | null, gameId: number): string[] {
   return db.transaction((tx) => {
     const game = getGame(tx, gameId);
     requireStatus(game, "registration");
+    const checks = startChecklist(tx, gameId);
+    const blockers = checks.filter((x) => x.blocking && !x.ok);
+    if (blockers.length) throw new GameError(blockers.map((x) => x.text).join(" "));
+    const warnings = checks.filter((x) => !x.blocking && !x.ok).map((x) => x.text);
+
     const ps = tx.select().from(participants).where(eq(participants.gameId, gameId)).all();
-    const unassigned = ps.filter((p) => p.teamId == null);
-    if (unassigned.length) {
-      throw new GameError(
-        `${unassigned.length} player(s) aren't on a team yet. Use auto-fill or assign them before starting.`,
-      );
-    }
     const allTeams = tx.select().from(teams).where(eq(teams.gameId, gameId)).all();
-    const sizes = new Map<number, number>();
-    for (const p of ps) sizes.set(p.teamId!, (sizes.get(p.teamId!) ?? 0) + 1);
+    const used = new Set(ps.map((p) => p.teamId));
     for (const t of allTeams) {
-      if (!sizes.has(t.id)) tx.delete(teams).where(eq(teams.id, t.id)).run(); // drop empty teams
+      if (!used.has(t.id)) tx.delete(teams).where(eq(teams.id, t.id)).run(); // drop empty teams
     }
-    const live = allTeams.filter((t) => sizes.has(t.id));
-    for (const t of live) {
-      const n = sizes.get(t.id)!;
-      if (n < game.minTeamSize) throw new GameError(`Team "${t.name}" has ${n} player(s); the minimum is ${game.minTeamSize}.`);
-      if (game.maxTeamSize != null && n > game.maxTeamSize) {
-        throw new GameError(`Team "${t.name}" has ${n} players; the maximum is ${game.maxTeamSize}.`);
-      }
-    }
-    if (live.length < 2) throw new GameError("You need at least 2 teams to start.");
-    const warnings: string[] = [];
-    if (live.length < 3) warnings.push("Only 2 teams: they will be hunting each other.");
+    const live = allTeams.filter((t) => used.has(t.id));
 
     const ring = buildRing(live.map((t) => t.id));
     const t0 = now();

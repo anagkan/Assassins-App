@@ -1,9 +1,10 @@
+import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { ConfirmButton, TypedConfirm } from "@/components/confirm";
 import { getDb } from "@/db";
 import { teams } from "@/db/schema";
 import { DEFAULT_RULES, DEFAULT_SAFE_ZONES } from "@/lib/defaults";
-import { checkRing } from "@/lib/game";
+import { checkRing, startChecklist } from "@/lib/game";
 import { gameStats } from "@/lib/queries";
 import { gameStatusAction, updateSettingsAction } from "../../actions";
 import { GameHeader, loadGame } from "../../GameHeader";
@@ -15,6 +16,8 @@ export default async function GameOverview({ params, searchParams }: { params: P
   const db = getDb();
   const s = gameStats(db, game.id);
   const problems = checkRing(db, game.id);
+  const checklist = game.status === "registration" ? startChecklist(db, game.id) : [];
+  const blocked = checklist.some((c) => c.blocking && !c.ok);
   const liveTeams = db.select().from(teams).where(eq(teams.gameId, game.id)).all().filter((t) => t.status === "alive");
   const teamsLocked = game.status === "active" || game.status === "paused" || game.status === "finished";
   const mode = game.maxTeamSize === 1 ? "solo" : "teams";
@@ -61,8 +64,23 @@ export default async function GameOverview({ params, searchParams }: { params: P
                     <button name="op" value="opensignups" className="btn btn-sm">Reopen sign-ups</button>
                   )}
                 </div>
-                <button name="op" value="start" className="btn btn-primary w-full">Start game &amp; assign targets</button>
-                <p className="text-xs text-ink-dim">Every player must be on a team first (see Teams &amp; players → auto-fill).</p>
+                <div className="rounded-md border border-line p-2">
+                  <div className="label">Ready to start?</div>
+                  <ul className="space-y-1 text-sm">
+                    {checklist.map((c, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span aria-hidden className={c.ok ? "text-ok-ink" : c.blocking ? "text-stop-ink" : "text-warn-ink"}>{c.ok ? "✓" : c.blocking ? "✗" : "!"}</span>
+                        <span className={c.ok ? "text-ink-dim" : ""}>{c.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {blocked && (
+                    <p className="mt-2 text-xs text-ink-dim">
+                      Fix the ✗ items on <Link href={`/admin/games/${game.id}/teams`} className="underline">Teams &amp; players</Link> first. Items marked ! won&apos;t stop the start.
+                    </p>
+                  )}
+                </div>
+                <button name="op" value="start" className="btn btn-primary w-full" disabled={blocked}>Start game &amp; assign targets</button>
               </>
             )}
             {game.status === "active" && <button name="op" value="pause" className="btn w-full">Pause game</button>}

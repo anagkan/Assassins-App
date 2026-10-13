@@ -54,6 +54,30 @@ describe("game setup", () => {
   });
 });
 
+describe("start checklist", () => {
+  it("lists every blocking problem at once", () => {
+    const db = freshDb();
+    const { gameId } = setupGame(db, [1, 3, 1]);
+    G.updateGameSettings(db, null, gameId, { minTeamSize: 2, maxTeamSize: 2 });
+    const [extra] = makeUsers(db, 1);
+    G.joinGame(db, extra, gameId, G.getGame(db, gameId).joinCode);
+    const failing = G.startChecklist(db, gameId).filter((c) => c.blocking && !c.ok).map((c) => c.text);
+    expect(failing).toHaveLength(4);
+    expect(failing.join(" ")).toMatch(/1 player\(s\) aren't on a team/);
+    expect(failing.join(" ")).toMatch(/has 3 players; the maximum is 2/);
+    expect(() => G.startGame(db, null, gameId)).toThrow(/aren't on a team.*minimum is 2.*maximum is 2.*minimum is 2/);
+  });
+
+  it("passes with advice only, which becomes start warnings", () => {
+    const db = freshDb();
+    const { gameId } = setupGame(db, [1, 1]);
+    G.updateGameSettings(db, null, gameId, { safeZonesMarkdown: "" });
+    const checks = G.startChecklist(db, gameId);
+    expect(checks.filter((c) => c.blocking && !c.ok)).toEqual([]);
+    expect(G.startGame(db, null, gameId)).toEqual(["Only 2 teams: they will be hunting each other.", "No safe zones published yet."]);
+  });
+});
+
 describe("team mechanics", () => {
   it("killing part of a team does not move the ring; wiping it does", () => {
     const db = freshDb();

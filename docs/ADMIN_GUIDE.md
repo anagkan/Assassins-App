@@ -21,7 +21,7 @@ This is a checklist for club officers. You don't need to know how to code. You o
 - Players who never joined a team: click **Auto-fill randomly**. It tops up small teams first, then makes new random teams of the size you choose. In solo games, auto-fill with size 1.
 
 ## 3. Start
-Click **Start game & assign targets**. This only works once everyone is on a team and all teams meet the size limits. Each player's dashboard now shows their target.
+The **Ready to start?** checklist in the Status box shows everything still in the way: players without a team, teams outside the size limits, fewer than 2 teams. Once every ✗ is fixed, click **Start game & assign targets**. Items marked ! (like missing safe zones) are reminders and don't block the start. Each player's dashboard now shows their target.
 
 ## 4. During the game
 - **Kill queue.** Check it daily. When a kill is reported, the victim sees it on their dashboard and can **confirm** or **dispute** it.
