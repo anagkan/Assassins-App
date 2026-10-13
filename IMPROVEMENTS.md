@@ -84,7 +84,7 @@ Every one of them involves the victim. This app doesn't: victims never see a rep
 
 - [x] <a id="a1"></a>**A1. Temporary passwords end up in the URL.** *Shipped: the action returns the password and the page shows it once, beside the row.* Reset password and Create account redirect to `/admin/users?ok=Temporary password: abcd-efgh` (`userAdminAction` in `src/app/admin/actions.ts`). It lands in browser history and Caddy's access logs, and is visible to anyone looking at the screen. Show it once on the page instead (short-lived cookie or the action's return value). **Also a security issue.**
 
-- [ ] <a id="a2"></a>**A2. No confirmation on irreversible admin actions.** One click does any of:
+- [x] <a id="a2"></a>**A2. No confirmation on irreversible admin actions.** *Shipped: a confirm dialog on each, and Finish/Reshuffle need the game's name typed (checked on the server too).* One click does any of:
   - **Finish game**
   - **Reshuffle** (voids every pending report)
   - **Purge selected**, with every overdue team pre-ticked

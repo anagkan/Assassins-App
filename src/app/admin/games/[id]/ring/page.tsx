@@ -1,4 +1,5 @@
 import { Empty, fmtDate, fmtRelative } from "@/components/ui";
+import { ConfirmButton, TypedConfirm } from "@/components/confirm";
 import { getDb } from "@/db";
 import { checkRing, getInactiveTeams } from "@/lib/game";
 import { ringView } from "@/lib/queries";
@@ -45,8 +46,8 @@ export default async function RingPage({ params, searchParams }: { params: Promi
           {live && ring.length > 1 && (
             <form action={reshuffleAction} className="mt-4 border-t border-line pt-3">
               <input type="hidden" name="gameId" value={game.id} />
-              <button className="btn btn-sm">Reshuffle all targets</button>
-              <p className="mt-1 text-xs text-ink-dim">Gives every alive team a new random target, voids pending reports and restarts inactivity clocks.</p>
+              <p className="mb-2 text-xs text-ink-dim">Gives every alive team a new random target, voids pending reports and restarts inactivity clocks.</p>
+              <TypedConfirm expected={game.name} label="Reshuffle all targets" className="btn btn-sm" />
             </form>
           )}
         </div>
@@ -70,7 +71,7 @@ export default async function RingPage({ params, searchParams }: { params: Promi
                   <span className="text-xs text-ink-dim" title={fmtDate(deadline)}>overdue {fmtRelative(deadline).replace(" ago", "")}</span>
                 </label>
               ))}
-              <button className="btn btn-danger">Purge selected</button>
+              <ConfirmButton className="btn btn-danger" message="Purge the ticked teams? Their players are taken out of the game and their hunters inherit their targets.">Purge selected</ConfirmButton>
             </form>
           )}
         </div>

@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { ConfirmButton, TypedConfirm } from "@/components/confirm";
 import { getDb } from "@/db";
 import { teams } from "@/db/schema";
 import { checkRing } from "@/lib/game";
@@ -58,7 +59,7 @@ export default async function GameOverview({ params, searchParams }: { params: P
               <p className="mt-1 text-xs text-ink-dim">Players enter this on their dashboard to join this game. Share it with the club.</p>
               <form action={gameStatusAction} className="mt-2">
                 <input type="hidden" name="gameId" value={game.id} />
-                <button name="op" value="joincode" className="btn btn-sm">Regenerate</button>
+                <ConfirmButton name="op" value="joincode" className="btn btn-sm" message="Generate a new join code? The current one stops working, including anywhere it's already been shared.">Regenerate</ConfirmButton>
               </form>
             </div>
           )}
@@ -94,7 +95,9 @@ export default async function GameOverview({ params, searchParams }: { params: P
                   <option key={t.id} value={t.id}>{t.name} ({t.kills} kills)</option>
                 ))}
               </select>
-              <button name="op" value="finish" className="btn btn-danger w-full">Finish game</button>
+              <input type="hidden" name="op" value="finish" />
+              <p className="text-xs text-ink-dim">Ends the game for everyone and voids pending kill reports. This can&apos;t be undone.</p>
+              <TypedConfirm expected={game.name} label="Finish game" className="btn btn-danger w-full" />
             </form>
           )}
         </div>

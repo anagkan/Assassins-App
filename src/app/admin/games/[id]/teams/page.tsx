@@ -1,4 +1,5 @@
 import { Avatar, Empty, StatusPill } from "@/components/ui";
+import { ConfirmButton } from "@/components/confirm";
 import { getDb } from "@/db";
 import { adminTeams } from "@/lib/queries";
 import { teamAdminAction } from "../../../actions";
@@ -46,7 +47,7 @@ export default async function TeamsAdmin({ params, searchParams }: { params: Pro
                       {hidden}
                       <input type="hidden" name="op" value="kick" />
                       <input type="hidden" name="participantId" value={p.participantId} />
-                      <button className="btn btn-danger btn-sm">Remove</button>
+                      <ConfirmButton className="btn btn-danger btn-sm" message={`Remove ${p.displayName} from this game?`}>Remove</ConfirmButton>
                     </form>
                   </li>
                 ))}
@@ -108,7 +109,7 @@ export default async function TeamsAdmin({ params, searchParams }: { params: Pro
                       <input type="hidden" name="op" value="removePlayer" />
                       <input type="hidden" name="participantId" value={m.participantId} />
                       <input className="input w-28 py-1 text-xs" name="reason" placeholder="reason" />
-                      <button className="btn btn-danger btn-sm">Remove</button>
+                      <ConfirmButton className="btn btn-danger btn-sm" message={`Remove ${m.displayName} from the game? They'll be marked out.`}>Remove</ConfirmButton>
                     </form>
                   )}
                   {canRevive && m.status !== "alive" && (
@@ -161,7 +162,7 @@ export default async function TeamsAdmin({ params, searchParams }: { params: Pro
                 <input type="hidden" name="op" value="removeTeam" />
                 <input type="hidden" name="teamId" value={team.id} />
                 <input className="input py-1 text-xs" name="reason" placeholder="reason (e.g. disqualified)" />
-                <button className="btn btn-danger btn-sm whitespace-nowrap">Remove team</button>
+                <ConfirmButton className="btn btn-danger btn-sm whitespace-nowrap" message={`Remove ${team.name}? Every member is marked out and their hunters inherit their target.`}>Remove team</ConfirmButton>
               </form>
             )}
           </div>

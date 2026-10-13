@@ -20,6 +20,12 @@ function parseLocal(s: string): number | null {
   return t;
 }
 
+/** Finish and Reshuffle make the admin type the game's name; check it here too, not just in the browser. */
+function requireTypedName(fd: FormData, gameId: number) {
+  const game = G.getGame(getDb(), gameId);
+  if (str(fd, "confirmName").trim() !== game.name.trim()) throw new G.GameError(`Type the game's name ("${game.name}") to confirm.`);
+}
+
 // ---- Games ---------------------------------------------------------------
 
 export async function createGameAction(fd: FormData) {
@@ -85,6 +91,7 @@ export async function gameStatusAction(fd: FormData) {
         case "resume":
           return G.resumeGame(db, admin.id, id);
         case "finish":
+          requireTypedName(fd, id);
           return G.finishGame(db, admin.id, id, optInt(fd, "winnerTeamId"));
         case "joincode":
           return G.regenerateJoinCode(db, admin.id, id);
@@ -166,7 +173,14 @@ export async function acknowledgeKillAction(fd: FormData) {
 export async function reshuffleAction(fd: FormData) {
   const admin = await requireAdmin();
   const id = int(fd, "gameId");
-  await act(gamePath(id, "/ring"), () => G.reshuffleAlive(getDb(), admin.id, id), "Ring reshuffled. Everyone has a new target.");
+  await act(
+    gamePath(id, "/ring"),
+    () => {
+      requireTypedName(fd, id);
+      return G.reshuffleAlive(getDb(), admin.id, id);
+    },
+    "Ring reshuffled. Everyone has a new target.",
+  );
 }
 
 export async function purgeInactiveAction(fd: FormData) {

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { desc } from "drizzle-orm";
 import { Flash, PageTitle, StatusPill, fmtDate } from "@/components/ui";
+import { ConfirmButton } from "@/components/confirm";
 import { getDb } from "@/db";
 import { games } from "@/db/schema";
 import { gameStats, pendingReports, unseenConfirmedReports } from "@/lib/queries";
@@ -61,7 +62,7 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
               {g.status === "draft" && (
                 <form action={deleteGameAction} className="ml-auto">
                   <input type="hidden" name="gameId" value={g.id} />
-                  <button className="btn btn-danger btn-sm">Delete draft</button>
+                  <ConfirmButton className="btn btn-danger btn-sm" message={`Delete the draft "${g.name}"? This can't be undone.`}>Delete draft</ConfirmButton>
                 </form>
               )}
             </li>

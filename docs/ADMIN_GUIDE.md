@@ -31,7 +31,7 @@ Click **Start game & assign targets**. This only works once everyone is on a tea
 - **Announcements.** Post daily immunities ("immune while wearing a hat"), rules of the day, or general news. Give each one a start and end time, and it shows highlighted on everyone's dashboard while it's active.
 - **Ring & inactivity.** This page shows the full target loop. **Don't screen-share it.** If you set an inactivity limit, overdue teams appear here. Untick anyone you want to spare, then click **Purge selected**.
 - **Pause / Resume.** Use these for breaks and exams. Inactivity clocks freeze while the game is paused, and no kills can be reported.
-- **Reshuffle.** Gives every alive team a new random target. Use it to shake things up or after a messy dispute.
+- **Reshuffle.** Gives every alive team a new random target. Use it to shake things up or after a messy dispute. You'll be asked to type the game's name first, since it voids every pending report.
 
 ### Fixing mistakes
 - **Wrong kill approved?** Go to **Teams & players**, find the victim, and click **Revive**. If their whole team had been knocked out, choose which team they should hunt. Reviving even reopens a game that already ended.
@@ -40,7 +40,7 @@ Click **Start game & assign targets**. This only works once everyone is on a tea
 - Every admin action is recorded in **Admin → Audit log**.
 
 ## 5. Ending
-The game ends automatically when one team is left. To end it early (e.g. at the end of the semester), use **Finish game** on the Overview and pick a winner, or choose no winner. Past games stay under **History** forever.
+The game ends automatically when one team is left. To end it early (e.g. at the end of the semester), use **Finish game** on the Overview and pick a winner, or choose no winner. Type the game's name to confirm. Past games stay under **History** forever.
 
 ## 6. Handing over
 Before you graduate, make next year's officers admins (**Admin → Users → Make admin**), and give the person who manages the server the [README](../README.md).
