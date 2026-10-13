@@ -17,7 +17,7 @@ This is a checklist for club officers. You don't need to know how to code. You o
 - To stop new accounts being created, click **Close account sign-ups** under **Admin → Registration**. **Regenerate** gives a new code if the old one leaked.
 - In team games, one person creates the team and shares its **invite code** with their teammates.
 - To stop new people joining (say, a day before you start), click **Close sign-ups** in the Status box. Players already in can still create, join and leave teams. **Reopen sign-ups** undoes it.
-- Under **Teams & players** you can move people between teams, merge or rename teams, and remove sign-ups.
+- Under **Teams & players** you can move people between teams, merge or rename teams, and remove sign-ups. Search by name, username, NetID or team, show only players still in or out, or switch to **One table of players**. Each player's Move/Remove/Revive controls open from the link beside their name.
 - Players who never joined a team: click **Auto-fill randomly**. It tops up small teams first, then makes new random teams of the size you choose. In solo games, auto-fill with size 1.
 
 ## 3. Start

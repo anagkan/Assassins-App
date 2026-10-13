@@ -114,8 +114,10 @@ export async function teamAdminAction(fd: FormData) {
   const id = int(fd, "gameId");
   const db = getDb();
   const op = str(fd, "op");
+  // The page's search and filter, so they survive the redirect. Only a query string is accepted.
+  const back = str(fd, "back");
   await act(
-    gamePath(id, "/teams"),
+    gamePath(id, "/teams") + (back.startsWith("?") ? back : ""),
     () => {
       switch (op) {
         case "move": {

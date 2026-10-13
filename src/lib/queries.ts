@@ -218,14 +218,25 @@ export function adminTeams(db: DB, gameId: number) {
   const allTeams = db.select().from(teams).where(eq(teams.gameId, gameId)).orderBy(asc(teams.name)).all();
   const members = membersOf(db, allTeams.map((t) => t.id));
   const unassigned = db
-    .select({ participantId: participants.id, displayName: users.displayName, username: users.username })
+    .select({ participantId: participants.id, displayName: users.displayName, username: users.username, netId: users.netId })
     .from(participants)
     .innerJoin(users, eq(users.id, participants.userId))
     .where(and(eq(participants.gameId, gameId), isNull(participants.teamId)))
     .orderBy(asc(users.displayName))
     .all();
   const byId = new Map(allTeams.map((t) => [t.id, t]));
+  // Kept out of Member so player-facing pages never load NetIDs; admins can search by them.
+  const netIds = new Map(
+    db
+      .select({ participantId: participants.id, netId: users.netId })
+      .from(participants)
+      .innerJoin(users, eq(users.id, participants.userId))
+      .where(eq(participants.gameId, gameId))
+      .all()
+      .map((r) => [r.participantId, r.netId]),
+  );
   return {
+    netIds,
     teams: allTeams.map((t) => ({
       team: t,
       members: members.get(t.id) ?? [],
