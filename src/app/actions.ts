@@ -19,7 +19,8 @@ export async function loginAction(fd: FormData) {
   const user = await verifyLogin(getDb(), username, str(fd, "password"));
   if (!user) redirect(`/login?error=${encodeURIComponent("Wrong username or password.")}`);
   await startSession(user.id);
-  redirect(user.mustChangePassword ? "/account?error=" + encodeURIComponent("Please choose a new password.") : "/");
+  if (user.mustChangePassword) redirect("/account?error=" + encodeURIComponent("Please choose a new password."));
+  redirect(user.isAdmin ? "/admin" : "/");
 }
 
 export async function registerAction(fd: FormData) {
