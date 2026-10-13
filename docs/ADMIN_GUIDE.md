@@ -24,6 +24,7 @@ This is a checklist for club officers. You don't need to know how to code. You o
 The **Ready to start?** checklist in the Status box shows everything still in the way: players without a team, teams outside the size limits, fewer than 2 teams. Once every ✗ is fixed, click **Start game & assign targets**. Items marked ! (like missing safe zones) are reminders and don't block the start. Each player's dashboard now shows their target.
 
 ## 4. During the game
+- **Admin home.** The top of **Admin** shows the running game at a glance: kills waiting for review (and how many are disputed), overdue teams, how many players are still in, today's kills, and which immunities or rules are live. Click a number to go to that page. During registration it shows sign-ups and whether the game is ready to start.
 - **Kill queue.** Check it daily. When a kill is reported, the victim sees it on their dashboard and can **confirm** or **dispute** it.
   - A confirmed kill is approved automatically. It appears under **Confirmed by the victim** (and counts in the tab badge) until you click **Got it**. If one looks wrong, click **Undo**.
   - A disputed kill stays pending and shows the victim's side of the story. Approve or reject it as usual.

@@ -1,4 +1,4 @@
-import { aliasedTable, and, asc, count, desc, eq, gt, inArray, isNull, lte, or } from "drizzle-orm";
+import { aliasedTable, and, asc, count, desc, eq, gt, gte, inArray, isNull, lte, or } from "drizzle-orm";
 import type { DB } from "@/db";
 import { announcements, killReports, participants, teams, users, type Game, type Team } from "@/db/schema";
 import { getParticipantForUser, reportProblem } from "./game";
@@ -213,6 +213,25 @@ export function gameStats(db: DB, gameId: number) {
 // ---------------------------------------------------------------------------
 // Admin read models
 // ---------------------------------------------------------------------------
+
+/** Activity in a game since `since` (the admin dashboard passes local midnight). */
+export function activitySince(db: DB, gameId: number, since: number) {
+  const reports = db
+    .select({ status: killReports.status, createdAt: killReports.createdAt, reviewedAt: killReports.reviewedAt })
+    .from(killReports)
+    .where(and(eq(killReports.gameId, gameId), or(gte(killReports.createdAt, since), gte(killReports.reviewedAt, since))))
+    .all();
+  const [{ out }] = db
+    .select({ out: count() })
+    .from(participants)
+    .where(and(eq(participants.gameId, gameId), gte(participants.eliminatedAt, since)))
+    .all();
+  return {
+    reported: reports.filter((r) => r.createdAt >= since).length,
+    approved: reports.filter((r) => r.status === "approved" && (r.reviewedAt ?? 0) >= since).length,
+    out,
+  };
+}
 
 export function adminTeams(db: DB, gameId: number) {
   const allTeams = db.select().from(teams).where(eq(teams.gameId, gameId)).orderBy(asc(teams.name)).all();
