@@ -431,9 +431,10 @@ export function joinTeam(db: DB, gameId: number, userId: number, inviteCode: str
 export function leaveTeam(db: DB, gameId: number, userId: number) {
   db.transaction((tx) => {
     const { p } = registrationParticipant(tx, gameId, userId);
+    const teamName = p.teamId != null ? getTeam(tx, p.teamId).name : null;
     tx.update(participants).set({ teamId: null }).where(eq(participants.id, p.id)).run();
     deleteTeamIfEmpty(tx, p.teamId);
-    audit(tx, userId, gameId, "team.leave", { teamId: p.teamId });
+    audit(tx, userId, gameId, "team.leave", { teamId: p.teamId, teamName });
   });
 }
 
@@ -469,9 +470,10 @@ export function movePlayer(db: DB, actorId: number, participantId: number, to: n
       if (team.id !== p.teamId) teamSizeCheck(tx, game, team.id);
       teamId = team.id;
     }
+    const fromName = p.teamId != null ? getTeam(tx, p.teamId).name : null;
     tx.update(participants).set({ teamId }).where(eq(participants.id, p.id)).run();
     deleteTeamIfEmpty(tx, p.teamId);
-    audit(tx, actorId, game.id, "admin.move_player", { participantId, from: p.teamId, to: teamId });
+    audit(tx, actorId, game.id, "admin.move_player", { participantId, from: p.teamId, fromName, to: teamId });
   });
 }
 
@@ -485,7 +487,7 @@ export function mergeTeams(db: DB, actorId: number, fromTeamId: number, intoTeam
     teamSizeCheck(tx, game, into.id, teamMembers(tx, from.id).length);
     tx.update(participants).set({ teamId: into.id }).where(eq(participants.teamId, from.id)).run();
     tx.delete(teams).where(eq(teams.id, from.id)).run();
-    audit(tx, actorId, game.id, "admin.merge_teams", { fromTeamId, intoTeamId });
+    audit(tx, actorId, game.id, "admin.merge_teams", { fromTeamId, fromName: from.name, intoTeamId });
   });
 }
 
@@ -747,7 +749,7 @@ export function withdrawKill(db: DB, userId: number, reportId: number) {
     const me = getParticipantForUser(tx, r.gameId, userId);
     if (!me || me.id !== r.assassinId) throw new GameError("Report not found.");
     tx.delete(killReports).where(eq(killReports.id, reportId)).run();
-    audit(tx, userId, r.gameId, "kill.withdraw", { reportId });
+    audit(tx, userId, r.gameId, "kill.withdraw", { reportId, victimId: r.victimId });
   });
 }
 

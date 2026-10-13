@@ -37,7 +37,7 @@ The **Ready to start?** checklist in the Status box shows everything still in th
 - **Wrong kill approved?** Click **Undo** next to it in the kill queue's History. The victim comes back and, if their team had been knocked out, slots back in where it was. If Undo isn't offered (say, the victim was removed later), go to **Teams & players**, find the victim, and click **Revive**. If their whole team had been knocked out, choose which team they should hunt. Reviving even reopens a game that already ended.
 - **Someone drops out or breaks the rules?** Click **Remove** next to the player, or **Remove team**. Their hunter automatically inherits their target.
 - **Forgotten password?** Go to **Admin → Users → Reset password** and send the player the temporary password privately. It's shown once, next to their row, and disappears when you leave the page. They'll be asked to change it.
-- Every admin action is recorded in **Admin → Audit log**.
+- Every admin action is recorded in **Admin → Audit log**, written out as sentences ("Anna removed Bob (reason: inactivity)"). Filter it by game or by action; hover over an entry to see the raw record.
 
 ## 5. Ending
 The game ends automatically when one team is left. To end it early (e.g. at the end of the semester), use **Finish game** on the Overview and pick a winner, or choose no winner. Type the game's name to confirm. Past games stay under **History** forever.
