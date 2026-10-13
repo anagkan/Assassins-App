@@ -365,6 +365,9 @@ export function joinGame(db: DB, userId: number, gameId: number, joinCode: strin
     if (game.status !== "registration") throw new GameError("Registration is closed.");
     if (!game.signupsOpen) throw new GameError("Sign-ups are closed right now.");
     if (joinCode.trim().toUpperCase() !== game.joinCode) throw new GameError("That join code is wrong.");
+    if (tx.select().from(users).where(eq(users.id, userId)).get()?.isAdmin) {
+      throw new GameError("Admin accounts run the game and can't play in it.");
+    }
     const existing = getParticipantForUser(tx, gameId, userId);
     if (existing) return existing;
     const p = tx.insert(participants).values({ gameId, userId, joinedAt: now() }).returning().get();

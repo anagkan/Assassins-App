@@ -62,7 +62,7 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
       {notices.length > 0 && <Notices items={notices} />}
 
       {!data.me ? (
-        <JoinPanel game={game} />
+        user.isAdmin ? <AdminPanel /> : <JoinPanel game={game} />
       ) : game.status === "registration" ? (
         <RegistrationPanel game={game} teamId={data.me.teamId} />
       ) : game.status === "finished" ? (
@@ -92,6 +92,15 @@ function Notices({ items }: { items: Announcement[] }) {
           {a.body && <p className="mt-1 whitespace-pre-line text-sm text-ink-dim">{a.body}</p>}
         </div>
       ))}
+    </div>
+  );
+}
+
+function AdminPanel() {
+  return (
+    <div className="card space-y-3">
+      <p>Admin accounts run the game and can&apos;t play in it.</p>
+      <Link href="/admin" className="btn btn-primary">Admin console</Link>
     </div>
   );
 }

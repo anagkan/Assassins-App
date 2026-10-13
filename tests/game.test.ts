@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { killReports, participants, teams } from "@/db/schema";
+import { killReports, participants, teams, users } from "@/db/schema";
 import { DEFAULT_RULES, DEFAULT_SAFE_ZONES } from "@/lib/defaults";
 import * as G from "@/lib/game";
 import { DAY_MS } from "@/lib/ring";
@@ -130,6 +130,15 @@ describe("team mechanics", () => {
     expect([...counts.values()].sort()).toEqual([2, 3, 3]);
     G.startGame(db, null, gameId);
     assertRingValid(db, gameId);
+  });
+
+  it("admin accounts can't join a game", () => {
+    const db = freshDb();
+    const { gameId } = setupGame(db, [1, 1]);
+    const [admin] = makeUsers(db, 1);
+    db.update(users).set({ isAdmin: true }).where(eq(users.id, admin)).run();
+    expect(() => G.joinGame(db, admin, gameId, G.getGame(db, gameId).joinCode)).toThrow(/Admin accounts/);
+    expect(G.getParticipantForUser(db, gameId, admin)).toBeUndefined();
   });
 
   it("closing sign-ups blocks new joins but not team changes", () => {

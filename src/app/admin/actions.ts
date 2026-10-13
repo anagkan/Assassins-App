@@ -4,7 +4,7 @@ import { and, eq, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
-import { users } from "@/db/schema";
+import { games, participants, users } from "@/db/schema";
 import * as A from "@/lib/announcements";
 import { createUser, resetPassword, setRegistrationCode } from "@/lib/auth";
 import { act, int, optInt, str } from "@/lib/flash";
@@ -264,6 +264,15 @@ export async function userAdminAction(fd: FormData) {
     () => {
       const userId = int(fd, "userId");
       if (op !== "promote" && op !== "demote") throw new G.GameError("Unknown action.");
+      if (op === "promote") {
+        const playing = db
+          .select({ id: participants.id })
+          .from(participants)
+          .innerJoin(games, eq(games.id, participants.gameId))
+          .where(and(eq(participants.userId, userId), ne(games.status, "finished")))
+          .get();
+        if (playing) throw new G.GameError("They're signed up for a game in progress. Admin accounts can't play, so remove them from it first.");
+      }
       if (op === "demote") {
         if (userId === admin.id) throw new G.GameError("You can't remove your own admin rights.");
         const others = db.select().from(users).where(and(eq(users.isAdmin, true), ne(users.id, userId))).all();

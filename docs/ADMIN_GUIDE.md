@@ -1,6 +1,6 @@
 # Running a semester of Assassins
 
-This is a checklist for club officers. You don't need to know how to code. You only need an admin account. If you don't have one, ask last semester's admin to click **Make admin** next to your name under **Admin → Users**.
+This is a checklist for club officers. You don't need to know how to code. You only need an admin account. If you don't have one, ask last semester's admin to click **Make admin** next to your name under **Admin → Users**. Admin accounts can't join games, so if you also want to play, use a separate player account for that.
 
 ## 1. Set up the game (about 1 week before)
 1. Go to **Admin** and create a game (e.g. "Spring 2027"). Under "Copy rules & settings from", pick last semester's game so you keep its rules.
