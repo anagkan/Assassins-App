@@ -5,6 +5,10 @@
 		X-Content-Type-Options "nosniff"
 		X-Frame-Options "DENY"
 		Referrer-Policy "same-origin"
+		# Everything is served from this origin. Next.js streams pages with inline scripts and
+		# React sets inline styles, hence 'unsafe-inline'; external scripts, frames and plugins are blocked.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
 	}
 	reverse_proxy app:3000
 }

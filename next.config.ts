@@ -4,7 +4,8 @@ const nextConfig: NextConfig = {
   output: "standalone",
   serverExternalPackages: ["better-sqlite3"],
   experimental: {
-    serverActions: { bodySizeLimit: "4mb" },
+    // Forms are text only (the largest is a game's rules), so keep request bodies small.
+    serverActions: { bodySizeLimit: "256kb" },
   },
 };
 
