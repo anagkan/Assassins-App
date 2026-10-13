@@ -273,7 +273,7 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
             {target.members.length === 1 ? (
               <div className="flex items-center gap-4 py-2">
                 <Avatar name={target.members[0].displayName} size={96} />
-                <div className="h-display text-3xl">{target.members[0].displayName}</div>
+                <div className="h-display min-w-0 break-words text-3xl">{target.members[0].displayName}</div>
               </div>
             ) : (
               <MemberList members={target.members} />
@@ -348,7 +348,7 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
                   {r.status === "pending" && r.assassinId === me.id && (
                     <form action={withdrawKillAction} className="ml-auto">
                       <input type="hidden" name="reportId" value={r.id} />
-                      <button className="text-xs text-ink-dim underline">withdraw</button>
+                      <button className="px-1 py-1.5 text-xs text-ink-dim underline">withdraw</button>
                     </form>
                   )}
                   {r.adminNote && r.status !== "pending" && <span className="w-full text-xs text-ink-dim">“{r.adminNote}”</span>}

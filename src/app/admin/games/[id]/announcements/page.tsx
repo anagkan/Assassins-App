@@ -61,7 +61,7 @@ export default async function AnnouncementsAdmin({
             <label className="label" htmlFor="body">Details</label>
             <textarea className="input" id="body" name="body" rows={3} maxLength={2000} defaultValue={source?.body} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className="label" htmlFor="activeFrom">Starts{editing ? "" : " (blank = now)"}</label>
               <input className="input" id="activeFrom" name="activeFrom" type="datetime-local" defaultValue={toLocalInput(source?.activeFrom ?? null)} />

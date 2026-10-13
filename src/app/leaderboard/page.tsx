@@ -22,7 +22,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {!solo && (
-            <div className="card">
+            <div className="card overflow-x-auto">
               <h2 className="h-display mb-3 text-xl">Teams</h2>
               <table className="table">
                 <thead>
@@ -41,7 +41,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
               </table>
             </div>
           )}
-          <div className={`card ${solo ? "md:col-span-2" : ""}`}>
+          <div className={`card overflow-x-auto ${solo ? "md:col-span-2" : ""}`}>
             <h2 className="h-display mb-3 text-xl">{solo ? "Players" : "Top assassins"}</h2>
             {(solo ? players : topPlayers).length === 0 ? (
               <Empty>No kills yet.</Empty>

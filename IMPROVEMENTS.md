@@ -62,7 +62,7 @@ Every one of them involves the victim. This app doesn't: victims never see a rep
 
 - [ ] <a id="p9"></a>**P9. No confirmation before destructive player actions.** There is no `confirm()` or client component anywhere, so one tap leaves a team, withdraws from the game, or withdraws a report.
 
-- [ ] <a id="p10"></a>**P10. Mobile navigation is cramped.** Seven header links in a sideways-scrolling strip, and History is hidden on phones. A bottom tab bar (Home / Feed / Standings / Rules / Me) suits phone players better.
+- [x] <a id="p10"></a>**P10. Mobile navigation is cramped.** *Shipped: phones get a bottom tab bar; History, Admin and Log out moved to the Me page (Admin also stays in the header).* Seven header links in a sideways-scrolling strip, and History is hidden on phones. A bottom tab bar (Home / Feed / Standings / Rules / Me) suits phone players better.
 
 - [ ] <a id="p11"></a>**P11. Flash messages live in the URL** (`?ok=…`, `src/lib/flash.ts`). They reappear on refresh, travel with shared links, and stay in history. See [A1](#a1) for the worst case.
 

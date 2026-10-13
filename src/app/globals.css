@@ -108,6 +108,14 @@ body {
   line-height: 1.45;
 }
 
+/* iOS Safari zooms the page into any field under 16px when it's focused. This sits outside
+   the layers so it also beats compact text-xs/text-sm utilities on admin fields. */
+@media (max-width: 639.98px) {
+  input, select, textarea {
+    font-size: 16px;
+  }
+}
+
 @layer components {
   .card {
     @apply rounded-md border border-line bg-surface p-4 sm:p-5;
@@ -131,7 +139,7 @@ body {
     @apply border-stop bg-stop text-stop-ink hover:border-stop-ink;
   }
   .btn-sm {
-    @apply px-2.5 py-1 text-xs;
+    @apply px-2.5 py-1 text-xs max-sm:py-1.5;
   }
   .pill {
     @apply inline-flex items-center rounded-full px-2 py-0.5 text-[0.78rem] font-semibold;

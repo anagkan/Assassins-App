@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { Avatar, Flash, PageTitle } from "@/components/ui";
 import { requireUser } from "@/lib/session";
-import { changePasswordAction, updateProfileAction } from "../actions";
+import { changePasswordAction, logoutAction, updateProfileAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +50,15 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           </div>
           <button className="btn">Change password</button>
         </form>
+
+        {/* Phones have no header links, so the rest of the menu lives here. */}
+        <div className="card space-y-3 sm:hidden">
+          <Link href="/history" className="btn w-full">Past games</Link>
+          {user.isAdmin && <Link href="/admin" className="btn w-full">Admin console</Link>}
+          <form action={logoutAction}>
+            <button className="btn w-full" type="submit">Log out</button>
+          </form>
+        </div>
       </div>
     </>
   );

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { TabSelect } from "./TabSelect";
 
 export function Flash({ searchParams }: { searchParams: { ok?: string; error?: string } }) {
   if (searchParams.error) {
@@ -22,7 +23,7 @@ export function Flash({ searchParams }: { searchParams: { ok?: string; error?: s
 export function PageTitle({ children, sub }: { children: ReactNode; sub?: ReactNode }) {
   return (
     <div className="mb-5">
-      <h1 className="h-display text-3xl sm:text-4xl">{children}</h1>
+      <h1 className="h-display break-words text-3xl sm:text-4xl">{children}</h1>
       {sub && <p className="mt-1 text-sm text-ink-dim">{sub}</p>}
     </div>
   );
@@ -71,19 +72,22 @@ export function Empty({ children }: { children: ReactNode }) {
 
 export function TabNav({ items, current }: { items: { href: string; label: string }[]; current: string }) {
   return (
-    <nav className="-mx-1 mb-5 flex gap-1 overflow-x-auto pb-1">
-      {items.map((i) => (
-        <Link
-          key={i.href}
-          href={i.href}
-          className={`whitespace-nowrap rounded-control border px-3 py-1.5 text-sm ${
-            current === i.href ? "border-accent bg-surface font-semibold text-ink" : "border-transparent text-ink-dim hover:border-line hover:text-ink"
-          }`}
-        >
-          {i.label}
-        </Link>
-      ))}
-    </nav>
+    <>
+      <TabSelect items={items} current={current} />
+      <nav className="-mx-1 mb-5 hidden gap-1 overflow-x-auto pb-1 sm:flex">
+        {items.map((i) => (
+          <Link
+            key={i.href}
+            href={i.href}
+            className={`whitespace-nowrap rounded-control border px-3 py-1.5 text-sm ${
+              current === i.href ? "border-accent bg-surface font-semibold text-ink" : "border-transparent text-ink-dim hover:border-line hover:text-ink"
+            }`}
+          >
+            {i.label}
+          </Link>
+        ))}
+      </nav>
+    </>
   );
 }
 
