@@ -24,7 +24,10 @@ This is a checklist for club officers. You don't need to know how to code. You o
 Click **Start game & assign targets**. This only works once everyone is on a team and all teams meet the size limits. Each player's dashboard now shows their target.
 
 ## 4. During the game
-- **Kill queue.** Check it daily. Approve or reject each report, optionally with a note the player will see. If a report shows ⚠, it's out of date (for example, the victim was already out), and approving it just marks it stale.
+- **Kill queue.** Check it daily. When a kill is reported, the victim sees it on their dashboard and can **confirm** or **dispute** it.
+  - A confirmed kill is approved automatically. It appears under **Confirmed by the victim** (and counts in the tab badge) until you click **Got it**. If one looks wrong, revive the victim.
+  - A disputed kill stays pending and shows the victim's side of the story. Approve or reject it as usual.
+  - Reports the victim hasn't answered yet can be approved or rejected too, optionally with a note the player will see. If a report shows ⚠, it's out of date (for example, the victim was already out), and approving it just marks it stale.
 - **Announcements.** Post daily immunities ("immune while wearing a hat"), rules of the day, or general news. Give each one a start and end time, and it shows highlighted on everyone's dashboard while it's active.
 - **Ring & inactivity.** This page shows the full target loop. **Don't screen-share it.** If you set an inactivity limit, overdue teams appear here. Untick anyone you want to spare, then click **Purge selected**.
 - **Pause / Resume.** Use these for breaks and exams. Inactivity clocks freeze while the game is paused, and no kills can be reported.

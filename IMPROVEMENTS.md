@@ -31,7 +31,7 @@ Every one of them involves the victim. This app doesn't: victims never see a rep
 
 ### High impact
 
-- [ ] <a id="p1"></a>**P1. Victims have no say in their own kill.** A victim only finds out once an admin has approved the kill. Add a dashboard prompt: "*X says they got you at Y. Confirm / Dispute.*"
+- [x] <a id="p1"></a>**P1. Victims have no say in their own kill.** *Shipped: confirmed kills are auto-approved and shown to admins until marked seen; disputes carry the victim's note.* A victim only finds out once an admin has approved the kill. Add a dashboard prompt: "*X says they got you at Y. Confirm / Dispute.*"
   - A confirmed kill can be auto-approved, or flagged green in the kill queue.
   - A disputed kill goes to the admin with both sides' accounts.
   - Cuts most of the admin's daily load and most arguments. Needs a new report state (e.g. `confirmed` / `disputed`) and a victim-response column on `kill_reports`.
@@ -97,7 +97,7 @@ Every one of them involves the victim. This app doesn't: victims never see a rep
 - [ ] <a id="a3"></a>**A3. Default rules look saved when they aren't.** The settings form fills empty Rules and Safe Zones boxes with `DEFAULT_RULES` / `DEFAULT_SAFE_ZONES` (`src/app/admin/games/[id]/page.tsx`). Until someone clicks Save, players see "The admins haven't posted rules yet." Save the defaults when the game is created, or label them "Template, not published."
 
 - [ ] <a id="a4"></a>**A4. The kill queue lacks context.** Would help to show:
-  - the victim's response (see [P1](#p1))
+  - ~~the victim's response (see [P1](#p1))~~ shipped with P1
   - whether the killer's team has had other reports rejected
   - time between kill and report
   - quick-reject reasons ("safe zone", "no witness", "wrong target")

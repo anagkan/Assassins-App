@@ -11,6 +11,7 @@ import {
   type Game,
   type Participant,
   type Team,
+  type VictimResponse,
 } from "@/db/schema";
 import {
   buildRing,
@@ -591,44 +592,96 @@ export function reportProblem(c: Conn, reportId: number): string | null {
 }
 
 export function approveKill(db: DB, actorId: number | null, reportId: number, note?: string): { stale: boolean } {
-  return db.transaction((tx) => {
-    const r = tx.select().from(killReports).where(eq(killReports.id, reportId)).get();
-    if (!r) throw new GameError("Report not found.");
-    if (r.status !== "pending") throw new GameError(`Report is already ${r.status}.`);
-    const game = getGame(tx, r.gameId);
-    requireStatus(game, "active", "paused");
-    const at = now();
-    const problem = reportProblem(tx, reportId);
-    if (problem) {
-      tx.update(killReports)
-        .set({ status: "stale", reviewedBy: actorId, reviewedAt: at, adminNote: problem })
-        .where(eq(killReports.id, reportId))
-        .run();
-      audit(tx, actorId, game.id, "kill.stale", { reportId, problem });
-      return { stale: true };
-    }
-    const assassin = getParticipant(tx, r.assassinId);
-    const victim = getParticipant(tx, r.victimId);
-    const aTeam = getTeam(tx, assassin.teamId!);
+  return db.transaction((tx) => approveInTx(tx, actorId, reportId, note));
+}
 
+/** Approves a pending report, or marks it stale if it no longer applies. `actorId` null = no admin involved. */
+function approveInTx(tx: Tx, actorId: number | null, reportId: number, note?: string, auditActorId = actorId): { stale: boolean } {
+  const r = tx.select().from(killReports).where(eq(killReports.id, reportId)).get();
+  if (!r) throw new GameError("Report not found.");
+  if (r.status !== "pending") throw new GameError(`Report is already ${r.status}.`);
+  const game = getGame(tx, r.gameId);
+  requireStatus(game, "active", "paused");
+  const at = now();
+  const problem = reportProblem(tx, reportId);
+  if (problem) {
     tx.update(killReports)
-      .set({ status: "approved", reviewedBy: actorId, reviewedAt: at, adminNote: note ?? null })
+      .set({ status: "stale", reviewedBy: actorId, reviewedAt: at, adminNote: problem })
       .where(eq(killReports.id, reportId))
       .run();
-    tx.update(participants)
-      .set({ status: "eliminated", eliminatedAt: at, eliminatedById: assassin.id })
-      .where(eq(participants.id, victim.id))
-      .run();
-    tx.update(participants).set({ kills: assassin.kills + 1 }).where(eq(participants.id, assassin.id)).run();
-    tx.update(teams)
-      .set({ kills: aTeam.kills + 1, lastKillAt: r.occurredAt, activityAt: Math.max(at, aTeam.activityAt ?? 0) })
-      .where(eq(teams.id, aTeam.id))
-      .run();
-    audit(tx, actorId, game.id, "kill.approve", { reportId, assassinId: assassin.id, victimId: victim.id });
+    audit(tx, auditActorId, game.id, "kill.stale", { reportId, problem });
+    return { stale: true };
+  }
+  const assassin = getParticipant(tx, r.assassinId);
+  const victim = getParticipant(tx, r.victimId);
+  const aTeam = getTeam(tx, assassin.teamId!);
 
-    if (aliveCount(tx, victim.teamId!) === 0) eliminateTeam(tx, game, victim.teamId!, "eliminated", aTeam.id, at);
-    return { stale: false };
+  tx.update(killReports)
+    .set({ status: "approved", reviewedBy: actorId, reviewedAt: at, adminNote: note ?? null })
+    .where(eq(killReports.id, reportId))
+    .run();
+  tx.update(participants)
+    .set({ status: "eliminated", eliminatedAt: at, eliminatedById: assassin.id })
+    .where(eq(participants.id, victim.id))
+    .run();
+  tx.update(participants).set({ kills: assassin.kills + 1 }).where(eq(participants.id, assassin.id)).run();
+  tx.update(teams)
+    .set({ kills: aTeam.kills + 1, lastKillAt: r.occurredAt, activityAt: Math.max(at, aTeam.activityAt ?? 0) })
+    .where(eq(teams.id, aTeam.id))
+    .run();
+  audit(tx, auditActorId, game.id, "kill.approve", { reportId, assassinId: assassin.id, victimId: victim.id });
+
+  if (aliveCount(tx, victim.teamId!) === 0) eliminateTeam(tx, game, victim.teamId!, "eliminated", aTeam.id, at);
+  return { stale: false };
+}
+
+/**
+ * The victim answers a pending report against them. Confirming approves the kill right
+ * away (admins see it afterwards in the kill queue); disputing leaves it pending for an
+ * admin, with the victim's side of the story attached.
+ */
+export function respondToKill(
+  db: DB,
+  userId: number,
+  reportId: number,
+  response: VictimResponse,
+  note = "",
+): { stale: boolean } {
+  return db.transaction((tx) => {
+    const r = tx.select().from(killReports).where(eq(killReports.id, reportId)).get();
+    const me = r ? getParticipantForUser(tx, r.gameId, userId) : undefined;
+    if (!r || !me || me.id !== r.victimId) throw new GameError("Report not found.");
+    if (r.status !== "pending") throw new GameError(`That report is already ${r.status}.`);
+    if (r.victimResponse) throw new GameError(`You already ${r.victimResponse} this report.`);
+    const trimmed = note.trim().slice(0, 1000);
+    if (response === "disputed" && !trimmed) throw new GameError("Tell the admins what really happened.");
+    tx.update(killReports)
+      .set({ victimResponse: response, victimNote: trimmed || null, victimRespondedAt: now() })
+      .where(eq(killReports.id, reportId))
+      .run();
+    if (response === "disputed") {
+      audit(tx, userId, r.gameId, "kill.dispute", { reportId });
+      return { stale: false };
+    }
+    audit(tx, userId, r.gameId, "kill.confirm", { reportId });
+    return approveInTx(tx, null, reportId, undefined, userId);
   });
+}
+
+/** Admin acknowledges victim-confirmed kills: one report, or every unseen one in the game. */
+export function acknowledgeConfirmedKills(db: DB, actorId: number, gameId: number, reportId?: number) {
+  db.update(killReports)
+    .set({ adminSeenAt: now() })
+    .where(
+      and(
+        eq(killReports.gameId, gameId),
+        eq(killReports.victimResponse, "confirmed"),
+        isNull(killReports.adminSeenAt),
+        reportId != null ? eq(killReports.id, reportId) : undefined,
+      ),
+    )
+    .run();
+  audit(db, actorId, gameId, "kill.acknowledge", reportId != null ? { reportId } : {});
 }
 
 export function rejectKill(db: DB, actorId: number | null, reportId: number, note?: string) {

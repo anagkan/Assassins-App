@@ -104,6 +104,9 @@ export const participants = sqliteTable(
 export const REPORT_STATUSES = ["pending", "approved", "rejected", "stale"] as const;
 export type ReportStatus = (typeof REPORT_STATUSES)[number];
 
+export const VICTIM_RESPONSES = ["confirmed", "disputed"] as const;
+export type VictimResponse = (typeof VICTIM_RESPONSES)[number];
+
 export const killReports = sqliteTable(
   "kill_reports",
   {
@@ -121,6 +124,13 @@ export const killReports = sqliteTable(
     reviewedBy: integer("reviewed_by"),
     reviewedAt: integer("reviewed_at"),
     adminNote: text("admin_note"),
+    // The victim's answer on their dashboard. A confirmed report is approved on the spot
+    // (reviewedBy stays null); a disputed one waits for an admin with the victim's note.
+    victimResponse: text("victim_response", { enum: VICTIM_RESPONSES }),
+    victimNote: text("victim_note"),
+    victimRespondedAt: integer("victim_responded_at"),
+    // When an admin acknowledged a victim-confirmed kill in the kill queue.
+    adminSeenAt: integer("admin_seen_at"),
   },
   (t) => [index("kill_reports_game_idx").on(t.gameId, t.status)],
 );

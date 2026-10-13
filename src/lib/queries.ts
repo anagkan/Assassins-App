@@ -77,6 +77,7 @@ export function dashboard(db: DB, game: Game, userId: number) {
           status: killReports.status,
           createdAt: killReports.createdAt,
           adminNote: killReports.adminNote,
+          victimResponse: killReports.victimResponse,
           assassinId: killReports.assassinId,
           assassinName: assassinU.displayName,
           victimName: victimU.displayName,
@@ -92,12 +93,29 @@ export function dashboard(db: DB, game: Game, userId: number) {
         .all()
     : [];
 
+  // Pending reports naming me as the victim, for the confirm / dispute prompt.
+  const againstMe = db
+    .select({
+      id: killReports.id,
+      occurredAt: killReports.occurredAt,
+      location: killReports.location,
+      description: killReports.description,
+      victimResponse: killReports.victimResponse,
+      assassinName: assassinU.displayName,
+    })
+    .from(killReports)
+    .innerJoin(assassinP, eq(assassinP.id, killReports.assassinId))
+    .innerJoin(assassinU, eq(assassinU.id, assassinP.userId))
+    .where(and(eq(killReports.victimId, me.id), eq(killReports.status, "pending")))
+    .orderBy(asc(killReports.createdAt))
+    .all();
+
   const deadline =
     playing && game.inactivityDays != null && myTeam
       ? inactivityDeadline(myTeam.team.activityAt ?? game.startedAt ?? Date.now(), game.inactivityDays, game.pausedAt, Date.now())
       : null;
 
-  return { me, myTeam, target, teamReports, deadline } as const;
+  return { me, myTeam, target, teamReports, againstMe, deadline } as const;
 }
 
 export type FeedEvent =
@@ -233,6 +251,11 @@ export function pendingReports(db: DB, gameId: number) {
   return reportRows(db, gameId, "pending").map((r) => ({ ...r, problem: reportProblem(db, r.id) }));
 }
 
+/** Kills the victim confirmed themselves (so no admin approved them) that no admin has looked at yet. */
+export function unseenConfirmedReports(db: DB, gameId: number) {
+  return reportRows(db, gameId, "approved").filter((r) => r.victimResponse === "confirmed" && r.adminSeenAt == null);
+}
+
 export function reportRows(db: DB, gameId: number, status?: "pending" | "approved" | "rejected" | "stale", limit = 200) {
   const victimP = aliasedTable(participants, "victim_p");
   const victimU = aliasedTable(users, "victim_u");
@@ -250,6 +273,11 @@ export function reportRows(db: DB, gameId: number, status?: "pending" | "approve
       location: killReports.location,
       description: killReports.description,
       adminNote: killReports.adminNote,
+      reviewedBy: killReports.reviewedBy,
+      victimResponse: killReports.victimResponse,
+      victimNote: killReports.victimNote,
+      victimRespondedAt: killReports.victimRespondedAt,
+      adminSeenAt: killReports.adminSeenAt,
       killer: killerU.displayName,
       killerTeam: killerT.name,
       victim: victimU.displayName,

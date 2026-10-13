@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Flash, StatusPill, TabNav } from "@/components/ui";
 import { getDb } from "@/db";
 import { GameError, getGame } from "@/lib/game";
-import { pendingReports } from "@/lib/queries";
+import { pendingReports, unseenConfirmedReports } from "@/lib/queries";
 
 export function loadGame(idParam: string) {
   try {
@@ -16,7 +16,9 @@ export function loadGame(idParam: string) {
 
 export function GameHeader({ id, current, sp }: { id: string; current: string; sp: { ok?: string; error?: string } }) {
   const game = loadGame(id);
-  const pending = pendingReports(getDb(), game.id).length;
+  const db = getDb();
+  // Victim-confirmed kills count too, until an admin marks them seen.
+  const pending = pendingReports(db, game.id).length + unseenConfirmedReports(db, game.id).length;
   const base = `/admin/games/${game.id}`;
   return (
     <>

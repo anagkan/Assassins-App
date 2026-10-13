@@ -3,7 +3,7 @@ import { desc } from "drizzle-orm";
 import { Flash, PageTitle, StatusPill, fmtDate } from "@/components/ui";
 import { getDb } from "@/db";
 import { games } from "@/db/schema";
-import { gameStats, pendingReports } from "@/lib/queries";
+import { gameStats, pendingReports, unseenConfirmedReports } from "@/lib/queries";
 import { AdminNav } from "./AdminNav";
 import { createGameAction, deleteGameAction } from "./actions";
 
@@ -42,13 +42,18 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
       <ul className="space-y-2">
         {all.map((g) => {
           const s = gameStats(db, g.id);
-          const pending = g.status === "active" || g.status === "paused" ? pendingReports(db, g.id).length : 0;
+          const live = g.status === "active" || g.status === "paused";
+          const pending = live ? pendingReports(db, g.id).length : 0;
+          const confirmed = live ? unseenConfirmedReports(db, g.id).length : 0;
           return (
             <li key={g.id} className="card flex flex-wrap items-center gap-3 py-3">
               <Link href={`/admin/games/${g.id}`} className="h-display text-xl hover:text-accent">{g.name}</Link>
               <StatusPill status={g.status} />
               {pending > 0 && (
                 <Link href={`/admin/games/${g.id}/kills`} className="pill chip-warn">{pending} pending kill{pending === 1 ? "" : "s"}</Link>
+              )}
+              {confirmed > 0 && (
+                <Link href={`/admin/games/${g.id}/kills`} className="pill chip-ok">{confirmed} confirmed by victim{confirmed === 1 ? "" : "s"}</Link>
               )}
               <span className="text-xs text-ink-dim">
                 {s.players} players · {s.teams} teams · created {fmtDate(g.createdAt)}

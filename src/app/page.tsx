@@ -12,6 +12,7 @@ import {
   leaveGameAction,
   leaveTeamAction,
   renameMyTeamAction,
+  respondToKillAction,
   submitKillAction,
   withdrawKillAction,
 } from "./actions";
@@ -245,7 +246,7 @@ function FinishedPanel({ game }: { game: Game }) {
 }
 
 function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dashboard> }) {
-  const { me, myTeam, target, teamReports, deadline } = data;
+  const { me, myTeam, target, teamReports, againstMe, deadline } = data;
   if (!me || !myTeam) return null;
   const solo = myTeam.members.length === 1;
   const iAmAlive = me.status === "alive";
@@ -255,6 +256,8 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
   return (
     <div className="grid gap-4 md:grid-cols-5">
       <div className="space-y-4 md:col-span-3">
+        {iAmAlive && againstMe.map((r) => <KillClaim key={r.id} report={r} />)}
+
         {!teamAlive ? (
           <div className="rounded-lg bg-stop px-5 py-6 text-center text-stop-ink">
             <div className="h-display text-3xl text-stop-ink">{solo ? "You've been eliminated" : "Your team has been wiped out"}</div>
@@ -311,7 +314,7 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
               <label className="label" htmlFor="description">How it went down</label>
               <textarea className="input" id="description" name="description" rows={3} maxLength={1000} placeholder="Witnesses help the admins verify." />
             </div>
-            <button className="btn btn-primary">Submit for review</button>
+            <button className="btn btn-primary">Submit report</button>
           </form>
         )}
         {teamAlive && !iAmAlive && (
@@ -338,6 +341,10 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
                     {!solo && <>{r.assassinName} → </>}
                     {r.victimName}
                   </span>
+                  {r.victimResponse === "confirmed" && <span className="text-xs text-ink-dim">confirmed by {r.victimName}</span>}
+                  {r.victimResponse === "disputed" && r.status === "pending" && (
+                    <span className="text-xs text-warn-ink">disputed, waiting on an admin</span>
+                  )}
                   {r.status === "pending" && r.assassinId === me.id && (
                     <form action={withdrawKillAction} className="ml-auto">
                       <input type="hidden" name="reportId" value={r.id} />
@@ -351,6 +358,49 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+type Claim = Extract<ReturnType<typeof dashboard>, { againstMe: unknown }>["againstMe"][number];
+
+function KillClaim({ report: r }: { report: Claim }) {
+  return (
+    <div className="card space-y-3 border-warn-ink">
+      <div className="label text-stop-ink">Were you taken out?</div>
+      <p className="text-lg">
+        <b>{r.assassinName}</b> says they got you {fmtRelative(r.occurredAt)}
+        {r.location && <> at {r.location}</>}.
+      </p>
+      {r.description && <p className="whitespace-pre-line rounded-sm bg-surface-sunken p-3 text-sm">{r.description}</p>}
+      {r.victimResponse === "disputed" ? (
+        <p className="text-sm text-ink-dim">You disputed this. The admins will decide and you&apos;ll see the result here.</p>
+      ) : (
+        <>
+          <p className="text-sm text-ink-dim">
+            If it&apos;s fair, confirm it and you&apos;re out right away. If not, dispute it and an admin will decide.
+          </p>
+          <form action={respondToKillAction}>
+            <input type="hidden" name="reportId" value={r.id} />
+            <button name="response" value="confirm" className="btn btn-primary">Confirm, I&apos;m out</button>
+          </form>
+          <details className="border-t border-line pt-3">
+            <summary className="cursor-pointer text-sm">Dispute it</summary>
+            <form action={respondToKillAction} className="mt-2 space-y-2">
+              <input type="hidden" name="reportId" value={r.id} />
+              <textarea
+                className="input"
+                name="note"
+                rows={3}
+                maxLength={1000}
+                required
+                placeholder="What really happened? e.g. I was in a safe zone, or had immunity."
+              />
+              <button name="response" value="dispute" className="btn btn-danger">Send dispute</button>
+            </form>
+          </details>
+        </>
+      )}
     </div>
   );
 }

@@ -277,3 +277,66 @@ describe("inactivity", () => {
     expect(gameRow(db, gameId).winnerTeamId).toBe(hunter.id);
   });
 });
+
+describe("victim responses", () => {
+  function pendingKill(teamSizes = [2, 2, 2]) {
+    const db = freshDb();
+    const { gameId } = setupGame(db, teamSizes);
+    G.startGame(db, null, gameId);
+    const hunter = aliveTeams(db, gameId)[0];
+    const assassin = aliveMembers(db, hunter.id)[0];
+    const victim = aliveMembers(db, hunter.targetTeamId!)[0];
+    const report = G.submitKill(db, gameId, assassin.userId, victim.id);
+    return { db, gameId, hunter, assassin, victim, report };
+  }
+  const reportRow = (db: ReturnType<typeof freshDb>, id: number) => db.select().from(killReports).where(eq(killReports.id, id)).get()!;
+
+  it("confirming approves the kill with no admin and leaves it unseen", () => {
+    const { db, gameId, hunter, assassin, victim, report } = pendingKill();
+    expect(G.respondToKill(db, victim.userId, report.id, "confirmed")).toEqual({ stale: false });
+    const r = reportRow(db, report.id);
+    expect(r.status).toBe("approved");
+    expect(r.victimResponse).toBe("confirmed");
+    expect(r.reviewedBy).toBeNull();
+    expect(r.adminSeenAt).toBeNull();
+    expect(db.select().from(participants).where(eq(participants.id, victim.id)).get()!.status).toBe("eliminated");
+    expect(db.select().from(participants).where(eq(participants.id, assassin.id)).get()!.kills).toBe(1);
+    expect(db.select().from(teams).where(eq(teams.id, hunter.id)).get()!.kills).toBe(1);
+
+    G.acknowledgeConfirmedKills(db, 1, gameId, report.id);
+    expect(reportRow(db, report.id).adminSeenAt).not.toBeNull();
+  });
+
+  it("confirming the last member wipes the team and moves the ring", () => {
+    const { db, gameId, hunter, victim, report } = pendingKill([1, 1, 1]);
+    const next = db.select().from(teams).where(eq(teams.id, hunter.targetTeamId!)).get()!.targetTeamId;
+    G.respondToKill(db, victim.userId, report.id, "confirmed");
+    expect(db.select().from(teams).where(eq(teams.id, hunter.id)).get()!.targetTeamId).toBe(next);
+    assertRingValid(db, gameId);
+  });
+
+  it("disputing keeps the report pending with the victim's note, and needs a note", () => {
+    const { db, victim, report } = pendingKill();
+    expect(() => G.respondToKill(db, victim.userId, report.id, "disputed", "  ")).toThrow(/what really happened/);
+    G.respondToKill(db, victim.userId, report.id, "disputed", "I was in the dining hall");
+    const r = reportRow(db, report.id);
+    expect(r.status).toBe("pending");
+    expect(r.victimNote).toBe("I was in the dining hall");
+    expect(() => G.respondToKill(db, victim.userId, report.id, "confirmed")).toThrow(/already disputed/);
+    expect(G.approveKill(db, 1, report.id)).toEqual({ stale: false });
+  });
+
+  it("only the victim can respond", () => {
+    const { db, assassin, report } = pendingKill();
+    expect(() => G.respondToKill(db, assassin.userId, report.id, "confirmed")).toThrow(/not found/);
+    expect(reportRow(db, report.id).status).toBe("pending");
+  });
+
+  it("confirming an out-of-date report marks it stale instead of approving", () => {
+    const { db, assassin, victim, report } = pendingKill();
+    db.update(participants).set({ status: "eliminated" }).where(eq(participants.id, assassin.id)).run();
+    expect(G.respondToKill(db, victim.userId, report.id, "confirmed")).toEqual({ stale: true });
+    expect(reportRow(db, report.id).status).toBe("stale");
+    expect(db.select().from(participants).where(eq(participants.id, victim.id)).get()!.status).toBe("alive");
+  });
+});

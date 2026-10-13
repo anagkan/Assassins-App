@@ -152,6 +152,13 @@ export async function reviewKillAction(fd: FormData) {
   );
 }
 
+export async function acknowledgeKillAction(fd: FormData) {
+  const admin = await requireAdmin();
+  const id = int(fd, "gameId");
+  const reportId = str(fd, "reportId") ? int(fd, "reportId") : undefined;
+  await act(gamePath(id, "/kills"), () => G.acknowledgeConfirmedKills(getDb(), admin.id, id, reportId));
+}
+
 // ---- Ring & inactivity -----------------------------------------------------
 
 export async function reshuffleAction(fd: FormData) {

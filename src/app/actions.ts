@@ -101,7 +101,22 @@ export async function submitKillAction(fd: FormData) {
         description: str(fd, "description"),
       });
     },
-    "Kill reported! An admin will review it soon.",
+    "Kill reported! Your target can confirm it on their dashboard; otherwise an admin will review it.",
+  );
+}
+
+export async function respondToKillAction(fd: FormData) {
+  const user = await requireUser();
+  const confirm = str(fd, "response") === "confirm";
+  await act(
+    "/",
+    () => G.respondToKill(getDb(), user.id, int(fd, "reportId"), confirm ? "confirmed" : "disputed", str(fd, "note")),
+    (r) =>
+      !confirm
+        ? "Dispute sent. The admins will look at both sides."
+        : (r as { stale: boolean }).stale
+          ? "That report no longer applies, so nothing changed."
+          : "Kill confirmed. Thanks for playing fair.",
   );
 }
 
