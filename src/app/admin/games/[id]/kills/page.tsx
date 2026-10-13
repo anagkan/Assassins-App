@@ -3,10 +3,12 @@ import { Empty, StatusPill, fmtDate, fmtDuration } from "@/components/ui";
 import { getDb } from "@/db";
 import { pendingReports, rejectedCountsByTeam, reportRows, unseenConfirmedReports } from "@/lib/queries";
 import { acknowledgeKillAction, reviewKillAction, undoKillAction } from "../../../actions";
-import { GameHeader, loadGame } from "../../../GameHeader";
+import { GameHeader, gameMetadata, loadGame } from "../../../GameHeader";
 
 /** One-click reasons beside Reject. A typed note is added after the reason. */
 const QUICK_REJECT_REASONS = ["In a safe zone", "Against the rules", "Not enough detail"];
+
+export const generateMetadata = gameMetadata("Kill queue");
 
 export default async function KillQueue({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: string; error?: string }> }) {
   const { id } = await params;
@@ -127,7 +129,7 @@ export default async function KillQueue({ params, searchParams }: { params: Prom
         <div className="card overflow-x-auto">
           <table className="table">
             <thead>
-              <tr><th>Status</th><th>Kill</th><th>When</th><th>Victim</th><th>Note</th><th /></tr>
+              <tr><th>Status</th><th>Kill</th><th>When</th><th>Victim</th><th>Note</th><th><span className="sr-only">Actions</span></th></tr>
             </thead>
             <tbody>
               {history.map((r) => (

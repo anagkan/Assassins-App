@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import { Empty, PageTitle } from "@/components/ui";
 import { renderMarkdown } from "@/lib/markdown";
 import { requireUser } from "@/lib/session";
 import { resolveGame } from "@/lib/viewGame";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Rules" };
 
 export default async function RulesPage({ searchParams }: { searchParams: Promise<{ game?: string }> }) {
   await requireUser();

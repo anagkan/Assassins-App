@@ -7,7 +7,9 @@ import { DEFAULT_RULES, DEFAULT_SAFE_ZONES } from "@/lib/defaults";
 import { checkRing, startChecklist } from "@/lib/game";
 import { gameStats } from "@/lib/queries";
 import { gameStatusAction, updateSettingsAction } from "../../actions";
-import { GameHeader, loadGame } from "../../GameHeader";
+import { GameHeader, gameMetadata, loadGame } from "../../GameHeader";
+
+export const generateMetadata = gameMetadata("Overview");
 
 export default async function GameOverview({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: string; error?: string }> }) {
   const { id } = await params;

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { and, desc, eq, isNull, like, type SQL } from "drizzle-orm";
 import { PageTitle, fmtDate } from "@/components/ui";
@@ -7,6 +8,8 @@ import { AUDIT_ACTIONS, AUDIT_GROUPS, auditNames, describeAudit, parsePayload } 
 import { AdminNav } from "../AdminNav";
 
 const PAGE_SIZE = 100;
+
+export const metadata: Metadata = { title: "Audit log" };
 
 export default async function AuditPage({ searchParams }: { searchParams: Promise<{ page?: string; game?: string; action?: string }> }) {
   const sp = await searchParams;

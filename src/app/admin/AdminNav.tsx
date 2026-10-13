@@ -4,6 +4,7 @@ export function AdminNav({ current }: { current: string }) {
   return (
     <TabNav
       current={current}
+      label="Admin sections"
       items={[
         { href: "/admin", label: "Games" },
         { href: "/admin/registration", label: "Registration" },

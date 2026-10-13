@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { desc } from "drizzle-orm";
 import type { ReactNode } from "react";
@@ -120,6 +121,8 @@ function CurrentGame({ db, game, today }: { db: DB; game: Game; today: number })
     </section>
   );
 }
+
+export const metadata: Metadata = { title: "Games" };
 
 export default async function AdminHome({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
   const sp = await searchParams;

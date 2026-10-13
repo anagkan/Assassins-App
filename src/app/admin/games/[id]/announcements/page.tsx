@@ -6,7 +6,7 @@ import { getDb } from "@/db";
 import { announcements } from "@/db/schema";
 import { toLocalInput } from "@/lib/announcements";
 import { announcementAction } from "../../../actions";
-import { GameHeader, loadGame } from "../../../GameHeader";
+import { GameHeader, gameMetadata, loadGame } from "../../../GameHeader";
 
 const WEEKDAYS = [
   [1, "Mon"],
@@ -17,6 +17,8 @@ const WEEKDAYS = [
   [6, "Sat"],
   [0, "Sun"],
 ] as const;
+
+export const generateMetadata = gameMetadata("Announcements");
 
 export default async function AnnouncementsAdmin({
   params,

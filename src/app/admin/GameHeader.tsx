@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Flash, StatusPill, TabNav } from "@/components/ui";
@@ -12,6 +13,13 @@ export function loadGame(idParam: string) {
     if (e instanceof GameError) notFound();
     throw e;
   }
+}
+
+/** Page title for one of a game's admin tabs, e.g. "Kill queue · Spring 2027". */
+export function gameMetadata(tab: string) {
+  return async ({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> => ({
+    title: `${tab} · ${loadGame((await params).id).name}`,
+  });
 }
 
 export function GameHeader({ id, current, sp }: { id: string; current: string; sp: { ok?: string; error?: string } }) {
@@ -29,6 +37,7 @@ export function GameHeader({ id, current, sp }: { id: string; current: string; s
       </div>
       <TabNav
         current={current}
+        label="Game sections"
         items={[
           { href: base, label: "Overview" },
           { href: `${base}/teams`, label: "Teams & players" },

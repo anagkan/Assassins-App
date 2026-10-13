@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,6 +9,8 @@ import { games, participants, users } from "@/db/schema";
 import { requireAdmin } from "@/lib/session";
 import { AdminNav } from "../../AdminNav";
 import { deleteUserAction, updateUserAction } from "../../actions";
+
+export const metadata: Metadata = { title: "Edit user" };
 
 export default async function UserAdmin({
   params,

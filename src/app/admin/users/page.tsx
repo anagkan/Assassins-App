@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { asc } from "drizzle-orm";
 import Link from "next/link";
 import { Flash, PageTitle, fmtDate } from "@/components/ui";
@@ -7,6 +8,8 @@ import { requireAdmin } from "@/lib/session";
 import { AdminNav } from "../AdminNav";
 import { userAdminAction, userPasswordAction } from "../actions";
 import { PasswordForm } from "./PasswordForm";
+
+export const metadata: Metadata = { title: "Users & admins" };
 
 export default async function UsersAdmin({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; q?: string }> }) {
   const me = await requireAdmin();
@@ -37,7 +40,7 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
       <div className="card overflow-x-auto">
         <table className="table">
           <thead>
-            <tr><th>Name</th><th>Username</th><th>NetID</th><th>PUID</th><th>Joined</th><th>Role</th><th /></tr>
+            <tr><th>Name</th><th>Username</th><th>NetID</th><th>PUID</th><th>Joined</th><th>Role</th><th><span className="sr-only">Actions</span></th></tr>
           </thead>
           <tbody>
             {rows.map((u) => (

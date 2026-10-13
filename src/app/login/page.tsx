@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Flash } from "@/components/ui";
 import { getCurrentUser } from "@/lib/session";
 import { loginAction } from "../actions";
+
+export const metadata: Metadata = { title: "Log in" };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
   if (await getCurrentUser()) redirect("/");

@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import { Flash, PageTitle } from "@/components/ui";
 import { getDb } from "@/db";
 import { getRegistrationCode } from "@/lib/auth";
 import { AdminNav } from "../AdminNav";
 import { registrationAction } from "../actions";
+
+export const metadata: Metadata = { title: "Registration" };
 
 export default async function RegistrationAdmin({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
   const sp = await searchParams;

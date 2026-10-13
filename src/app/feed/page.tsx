@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Empty, PageTitle, fmtDate } from "@/components/ui";
 import { getDb } from "@/db";
 import { feed, gameStats } from "@/lib/queries";
@@ -5,6 +6,8 @@ import { requireUser } from "@/lib/session";
 import { resolveGame } from "@/lib/viewGame";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Feed" };
 
 export default async function FeedPage({ searchParams }: { searchParams: Promise<{ game?: string }> }) {
   await requireUser();

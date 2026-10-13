@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SubmitButton } from "@/components/SubmitButton";
@@ -8,6 +9,8 @@ import { getCurrentUser } from "@/lib/session";
 import { registerAction } from "../actions";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Create an account" };
 
 export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; code?: string }> }) {
   if (await getCurrentUser()) redirect("/");

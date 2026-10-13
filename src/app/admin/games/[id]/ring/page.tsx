@@ -4,7 +4,9 @@ import { getDb } from "@/db";
 import { checkRing, getInactiveTeams } from "@/lib/game";
 import { ringView } from "@/lib/queries";
 import { purgeInactiveAction, reshuffleAction } from "../../../actions";
-import { GameHeader, loadGame } from "../../../GameHeader";
+import { GameHeader, gameMetadata, loadGame } from "../../../GameHeader";
+
+export const generateMetadata = gameMetadata("Ring & inactivity");
 
 export default async function RingPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: string; error?: string }> }) {
   const { id } = await params;

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Avatar, Flash, PageTitle } from "@/components/ui";
 import { getDb } from "@/db";
@@ -6,6 +7,8 @@ import { requireUser } from "@/lib/session";
 import { changePasswordAction, logoutAction, updateProfileAction } from "../actions";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Profile" };
 
 export default async function AccountPage({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
   const user = await requireUser();

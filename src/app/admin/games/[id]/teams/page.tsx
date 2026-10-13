@@ -6,9 +6,11 @@ import { getDb } from "@/db";
 import type { Team } from "@/db/schema";
 import { adminTeams, type Member } from "@/lib/queries";
 import { teamAdminAction } from "../../../actions";
-import { GameHeader, loadGame } from "../../../GameHeader";
+import { GameHeader, gameMetadata, loadGame } from "../../../GameHeader";
 
 type Show = "all" | "alive" | "out";
+
+export const generateMetadata = gameMetadata("Teams & players");
 
 export default async function TeamsAdmin({
   params,
@@ -192,7 +194,7 @@ export default async function TeamsAdmin({
           ) : (
             <table className="table text-sm">
               <thead>
-                <tr><th>Player</th><th>NetID</th><th>Team</th>{!reg && <th>Status</th>}<th>Kills</th><th></th></tr>
+                <tr><th>Player</th><th>NetID</th><th>Team</th>{!reg && <th>Status</th>}<th>Kills</th><th><span className="sr-only">Actions</span></th></tr>
               </thead>
               <tbody>
                 {players.map(({ m, team }) => (

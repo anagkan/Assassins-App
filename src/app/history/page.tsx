@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { desc, inArray } from "drizzle-orm";
 import { Empty, PageTitle, StatusPill, fmtDate } from "@/components/ui";
@@ -7,6 +8,8 @@ import { gameStats, teamWithMembers } from "@/lib/queries";
 import { requireUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "History" };
 
 export default async function HistoryPage() {
   await requireUser();

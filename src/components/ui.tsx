@@ -70,15 +70,17 @@ export function Empty({ children }: { children: ReactNode }) {
   return <p className="py-6 text-center text-sm text-ink-dim">{children}</p>;
 }
 
-export function TabNav({ items, current }: { items: { href: string; label: string }[]; current: string }) {
+/** `label` names the section list for screen readers, e.g. "Admin sections". */
+export function TabNav({ items, current, label }: { items: { href: string; label: string }[]; current: string; label: string }) {
   return (
     <>
-      <TabSelect items={items} current={current} />
-      <nav className="-mx-1 mb-5 hidden gap-1 overflow-x-auto pb-1 sm:flex">
+      <TabSelect items={items} current={current} label={label} />
+      <nav aria-label={label} className="-mx-1 mb-5 hidden gap-1 overflow-x-auto pb-1 sm:flex">
         {items.map((i) => (
           <Link
             key={i.href}
             href={i.href}
+            aria-current={current === i.href ? "page" : undefined}
             className={`whitespace-nowrap rounded-control border px-3 py-1.5 text-sm ${
               current === i.href ? "border-accent bg-surface font-semibold text-ink" : "border-transparent text-ink-dim hover:border-line hover:text-ink"
             }`}

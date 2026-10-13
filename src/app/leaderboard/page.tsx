@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Empty, PageTitle, StatusPill } from "@/components/ui";
 import { getDb } from "@/db";
 import { leaderboard } from "@/lib/queries";
@@ -5,6 +6,8 @@ import { requireUser } from "@/lib/session";
 import { resolveGame } from "@/lib/viewGame";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Standings" };
 
 export default async function LeaderboardPage({ searchParams }: { searchParams: Promise<{ game?: string }> }) {
   await requireUser();
@@ -26,7 +29,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
               <h2 className="h-display mb-3 text-xl">Teams</h2>
               <table className="table">
                 <thead>
-                  <tr><th>Team</th><th>Alive</th><th>Kills</th><th /></tr>
+                  <tr><th>Team</th><th>Alive</th><th>Kills</th><th><span className="sr-only">Status</span></th></tr>
                 </thead>
                 <tbody>
                   {teamRows.map(({ team, size, alive }) => (
@@ -48,7 +51,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
             ) : (
               <table className="table">
                 <thead>
-                  <tr><th>Player</th>{!solo && <th>Team</th>}<th>Kills</th><th /></tr>
+                  <tr><th>Player</th>{!solo && <th>Team</th>}<th>Kills</th><th><span className="sr-only">Status</span></th></tr>
                 </thead>
                 <tbody>
                   {(solo ? players : topPlayers).map((p) => (
