@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { killReports, participants, teams } from "@/db/schema";
+import { DEFAULT_RULES, DEFAULT_SAFE_ZONES } from "@/lib/defaults";
 import * as G from "@/lib/game";
 import { DAY_MS } from "@/lib/ring";
 import { aliveMembers, aliveTeams, assertRingValid, freshDb, gameRow, killOne, makeUsers, setupGame } from "./helpers";
@@ -33,6 +34,24 @@ describe("full games", () => {
   it("even teams of 3", () => playToWinner([3, 3, 3, 3]));
   it("uneven teams (1/2/5)", () => playToWinner([1, 2, 5]));
   it("two teams", () => playToWinner([2, 4]));
+});
+
+describe("game setup", () => {
+  it("saves the template rules on a new game so players see them", () => {
+    const db = freshDb();
+    const g = G.createGame(db, null, "Fresh");
+    expect(g.rulesMarkdown).toBe(DEFAULT_RULES);
+    expect(g.safeZonesMarkdown).toBe(DEFAULT_SAFE_ZONES);
+  });
+
+  it("copies rules from an earlier game", () => {
+    const db = freshDb();
+    const old = G.createGame(db, null, "Old");
+    G.updateGameSettings(db, null, old.id, { rulesMarkdown: "Custom", safeZonesMarkdown: "Library" });
+    const g = G.createGame(db, null, "New", old.id);
+    expect(g.rulesMarkdown).toBe("Custom");
+    expect(g.safeZonesMarkdown).toBe("Library");
+  });
 });
 
 describe("team mechanics", () => {

@@ -2,27 +2,11 @@ import { eq } from "drizzle-orm";
 import { ConfirmButton, TypedConfirm } from "@/components/confirm";
 import { getDb } from "@/db";
 import { teams } from "@/db/schema";
+import { DEFAULT_RULES, DEFAULT_SAFE_ZONES } from "@/lib/defaults";
 import { checkRing } from "@/lib/game";
 import { gameStats } from "@/lib/queries";
 import { gameStatusAction, updateSettingsAction } from "../../actions";
 import { GameHeader, loadGame } from "../../GameHeader";
-
-const DEFAULT_RULES = `## How to play
-- Everyone is secretly assigned a target. Eliminate your target by **tapping them on the torso with a spoon**.
-- When you eliminate your target, report it in the app. Once an admin approves it, you inherit their target.
-- In team games, any member of your team may eliminate any member of your target team. A team is out when all its members are out.
-- Last one (or team) standing wins.
-
-## Fair play
-- Your spoon must be visible and carried at all times when outside a safe zone.
-- No throwing spoons. No physical force, no tackling, no entering someone's room uninvited.
-- Kills with no witnesses are fine, but be honest. The admins can reverse any kill.
-- If you're eliminated, tell your killer your status promptly.`;
-
-const DEFAULT_SAFE_ZONES = `- Inside the Colonial dining room during meals
-- Classrooms, labs, libraries and exams
-- Bedrooms and bathrooms
-- Varsity practices and games, religious services, work shifts`;
 
 export default async function GameOverview({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: string; error?: string }> }) {
   const { id } = await params;
@@ -143,10 +127,12 @@ export default async function GameOverview({ params, searchParams }: { params: P
           </div>
           <div>
             <label className="label" htmlFor="rulesMarkdown">Rules (Markdown)</label>
+            {!game.rulesMarkdown && <Unpublished />}
             <textarea className="input font-mono text-sm" id="rulesMarkdown" name="rulesMarkdown" rows={12} defaultValue={game.rulesMarkdown || DEFAULT_RULES} />
           </div>
           <div>
             <label className="label" htmlFor="safeZonesMarkdown">Safe zones (Markdown)</label>
+            {!game.safeZonesMarkdown && <Unpublished />}
             <textarea className="input font-mono text-sm" id="safeZonesMarkdown" name="safeZonesMarkdown" rows={5} defaultValue={game.safeZonesMarkdown || DEFAULT_SAFE_ZONES} />
           </div>
           <button className="btn btn-primary">Save settings</button>
@@ -154,4 +140,9 @@ export default async function GameOverview({ params, searchParams }: { params: P
       </div>
     </>
   );
+}
+
+/** Shown when the box holds the built-in template rather than anything saved. */
+function Unpublished() {
+  return <p className="mb-1 text-xs text-warn-ink">Template, not published. Players won&apos;t see this until you save.</p>;
 }

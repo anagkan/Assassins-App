@@ -13,6 +13,7 @@ import {
   type Team,
   type VictimResponse,
 } from "@/db/schema";
+import { DEFAULT_RULES, DEFAULT_SAFE_ZONES } from "./defaults";
 import {
   buildRing,
   groupIntoTeams,
@@ -149,8 +150,9 @@ export function createGame(db: DB, actorId: number | null, name: string, copyFro
         createdAt: now(),
         maxTeamSize: src?.maxTeamSize ?? 1,
         minTeamSize: src?.minTeamSize ?? 1,
-        rulesMarkdown: src?.rulesMarkdown ?? "",
-        safeZonesMarkdown: src?.safeZonesMarkdown ?? "",
+        // Save the templates so players see real rules even if nobody edits them.
+        rulesMarkdown: src?.rulesMarkdown || DEFAULT_RULES,
+        safeZonesMarkdown: src?.safeZonesMarkdown || DEFAULT_SAFE_ZONES,
         inactivityDays: src?.inactivityDays ?? null,
         showKillerInFeed: src?.showKillerInFeed ?? true,
       })

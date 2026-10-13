@@ -94,7 +94,7 @@ Every one of them involves the victim. This app doesn't: victims never see a rep
 
   Add a confirm step; for Finish and Reshuffle, a type-the-game-name check.
 
-- [ ] <a id="a3"></a>**A3. Default rules look saved when they aren't.** The settings form fills empty Rules and Safe Zones boxes with `DEFAULT_RULES` / `DEFAULT_SAFE_ZONES` (`src/app/admin/games/[id]/page.tsx`). Until someone clicks Save, players see "The admins haven't posted rules yet." Save the defaults when the game is created, or label them "Template, not published."
+- [x] <a id="a3"></a>**A3. Default rules look saved when they aren't.** *Shipped: new games save the templates; older games with empty boxes show a "Template, not published" note.* The settings form fills empty Rules and Safe Zones boxes with `DEFAULT_RULES` / `DEFAULT_SAFE_ZONES` (`src/app/admin/games/[id]/page.tsx`). Until someone clicks Save, players see "The admins haven't posted rules yet." Save the defaults when the game is created, or label them "Template, not published."
 
 - [ ] <a id="a4"></a>**A4. The kill queue lacks context.** Would help to show:
   - ~~the victim's response (see [P1](#p1))~~ shipped with P1
