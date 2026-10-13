@@ -38,6 +38,8 @@ The **Ready to start?** checklist in the Status box shows everything still in th
 - **Wrong kill approved?** Click **Undo** next to it in the kill queue's History. The victim comes back and, if their team had been knocked out, slots back in where it was. If Undo isn't offered (say, the victim was removed later), go to **Teams & players**, find the victim, and click **Revive**. If their whole team had been knocked out, choose which team they should hunt. Reviving even reopens a game that already ended.
 - **Someone drops out or breaks the rules?** Click **Remove** next to the player, or **Remove team**. Their hunter automatically inherits their target.
 - **Forgotten password?** Go to **Admin → Users → Reset password** and send the player the temporary password privately. It's shown once, next to their row, and disappears when you leave the page. They'll be asked to change it.
+- **Wrong details or an offensive name?** Click **Edit** next to the player under **Admin → Users** to fix their name, username, NetID or PUID. Players can't change their own name while a game they're in is running, so name fixes during a game go through you.
+- **Fake or duplicate account?** Use **Delete account** on the same page and type the username to confirm. Someone still alive in a running game must be removed from it first. If they've played in a game, their name, NetID and PUID are wiped and they show as "Deleted player" in past games; otherwise the account is removed completely, which frees up the NetID and PUID for the real student.
 - Every admin action is recorded in **Admin → Audit log**, written out as sentences ("Anna removed Bob (reason: inactivity)"). Filter it by game or by action; hover over an entry to see the raw record.
 
 ## 5. Ending

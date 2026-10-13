@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { getDb } from "@/db";
 import { games, participants, users } from "@/db/schema";
 import * as A from "@/lib/announcements";
-import { createUser, resetPassword, setRegistrationCode } from "@/lib/auth";
+import { createUser, deleteAccount, resetPassword, setRegistrationCode, updateAccount } from "@/lib/auth";
 import { act, int, optInt, str } from "@/lib/flash";
 import * as G from "@/lib/game";
 import { requireAdmin } from "@/lib/session";
@@ -282,6 +282,44 @@ export async function userAdminAction(fd: FormData) {
       G.audit(db, admin.id, null, `admin.${op}`, { userId });
     },
     "Done.",
+  );
+}
+
+export async function updateUserAction(fd: FormData) {
+  const admin = await requireAdmin();
+  const userId = int(fd, "userId");
+  await act(
+    `/admin/users/${userId}`,
+    () =>
+      updateAccount(getDb(), admin.id, userId, {
+        username: str(fd, "username"),
+        firstName: str(fd, "firstName"),
+        lastName: str(fd, "lastName"),
+        netId: str(fd, "netId"),
+        puid: str(fd, "puid"),
+      }),
+    "Account saved.",
+  );
+}
+
+/** The admin types the username to confirm; checked here too, not just in the browser. */
+export async function deleteUserAction(fd: FormData) {
+  const admin = await requireAdmin();
+  const userId = int(fd, "userId");
+  const db = getDb();
+  let outcome: "deleted" | "anonymized";
+  try {
+    const user = db.select().from(users).where(eq(users.id, userId)).get();
+    if (!user) throw new G.GameError("Account not found.");
+    if (str(fd, "confirmName").trim() !== user.username) throw new G.GameError(`Type the username ("${user.username}") to confirm.`);
+    outcome = await deleteAccount(db, admin.id, userId);
+  } catch (e) {
+    if (e instanceof G.GameError) redirect(`/admin/users/${userId}?error=` + encodeURIComponent(e.message));
+    throw e;
+  }
+  redirect(
+    "/admin/users?ok=" +
+      encodeURIComponent(outcome === "deleted" ? "Account deleted." : "Account deleted. They played in past games, so they now show there as \"Deleted player\"."),
   );
 }
 

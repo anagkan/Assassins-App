@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Avatar, Flash, PageTitle } from "@/components/ui";
+import { getDb } from "@/db";
+import { runningGameFor } from "@/lib/game";
 import { requireUser } from "@/lib/session";
 import { changePasswordAction, logoutAction, updateProfileAction } from "../actions";
 
@@ -12,6 +14,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   const [first, ...rest] = user.displayName.split(" ");
   const firstName = user.firstName ?? first;
   const lastName = user.lastName ?? rest.join(" ");
+  const running = runningGameFor(getDb(), user.id);
   return (
     <>
       <PageTitle sub={`Signed in as @${user.username}`}>Profile</PageTitle>
@@ -20,7 +23,12 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <form action={updateProfileAction} className="card space-y-4">
           <h2 className="h-display text-xl">Name</h2>
           <Avatar name={user.displayName} size={72} />
-          <div className="grid gap-4 sm:grid-cols-2">
+          {running && (
+            <p className="rounded-sm bg-warn px-3 py-2 text-sm text-(--warn-chip-ink)">
+              Your name is locked while {running.name} is running. Ask an admin if it needs changing.
+            </p>
+          )}
+          <fieldset disabled={!!running} className="grid gap-4 disabled:opacity-60 sm:grid-cols-2">
             <div>
               <label className="label" htmlFor="firstName">First name</label>
               <input className="input" id="firstName" name="firstName" defaultValue={firstName} autoComplete="given-name" maxLength={40} required />
@@ -29,8 +37,8 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
               <label className="label" htmlFor="lastName">Last name</label>
               <input className="input" id="lastName" name="lastName" defaultValue={lastName} autoComplete="family-name" maxLength={40} required />
             </div>
-          </div>
-          <button className="btn btn-primary">Save profile</button>
+          </fieldset>
+          {!running && <button className="btn btn-primary">Save profile</button>}
         </form>
 
         <form action={changePasswordAction} className={`card space-y-4 ${user.mustChangePassword ? "border-warn-ink" : ""}`}>

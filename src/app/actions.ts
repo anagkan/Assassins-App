@@ -155,6 +155,8 @@ export async function updateProfileAction(fd: FormData) {
     "/account",
     async () => {
       const db = getDb();
+      const running = G.runningGameFor(db, user.id);
+      if (running) throw new G.GameError(`Names are locked while ${running.name} is running. Ask an admin if yours needs changing.`);
       const firstName = str(fd, "firstName").trim().slice(0, 40);
       const lastName = str(fd, "lastName").trim().slice(0, 40);
       if (!firstName || !lastName) throw new G.GameError("Please enter your first and last name.");

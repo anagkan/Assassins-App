@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { auditLog, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { AUDIT_ACTIONS, auditNames, describeAudit, parsePayload } from "@/lib/auditText";
+import { deleteAccount, updateAccount } from "@/lib/auth";
 import * as G from "@/lib/game";
 import { aliveMembers, aliveTeams, freshDb, killOne, makeUsers, setupGame } from "./helpers";
 
@@ -13,6 +14,18 @@ function sentences(db: ReturnType<typeof freshDb>) {
 }
 
 describe("audit log sentences", () => {
+  it("describes account edits and deletions", async () => {
+    const db = freshDb();
+    const [admin, gone] = makeUsers(db, 2);
+    updateAccount(db, admin, gone, { username: "renamed", firstName: "Ada", lastName: "", netId: "ab1234", puid: "" });
+    expect(sentences(db).map((s) => s.text)).toEqual(["Player 0 edited the account details for Ada (username, first name, NetID)."]);
+    await deleteAccount(db, admin, gone);
+    expect(sentences(db).map((s) => s.text)).toEqual([
+      "Player 0 edited the account details for a deleted account (username, first name, NetID).",
+      "Player 0 deleted the account for Ada.",
+    ]);
+  });
+
   it("has a label and a sentence for everything a game logs", () => {
     const db = freshDb();
     const { gameId, userIds } = setupGame(db, [2, 2, 1]);

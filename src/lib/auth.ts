@@ -1,9 +1,9 @@
 import { createHash, randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
-import { eq, lt } from "drizzle-orm";
+import { and, eq, lt, ne } from "drizzle-orm";
 import type { DB } from "@/db";
-import { sessions, settings, users, type User } from "@/db/schema";
-import { GameError, audit, randomCode } from "./game";
+import { games, participants, sessions, settings, users, type User } from "@/db/schema";
+import { GameError, audit, deleteTeamIfEmpty, randomCode } from "./game";
 
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const USERNAME_RE = /^[a-z0-9_.-]{3,32}$/;
@@ -12,6 +12,14 @@ const PUID_RE = /^[0-9]{9}$/;
 
 export function normalizeUsername(u: string) {
   return u.trim().toLowerCase();
+}
+
+function validUsername(u: string): string {
+  const username = normalizeUsername(u);
+  if (!USERNAME_RE.test(username)) {
+    throw new GameError("Username must be 3–32 characters: letters, numbers, dot, dash or underscore.");
+  }
+  return username;
 }
 
 export function validatePassword(pw: string) {
@@ -37,10 +45,7 @@ export async function createUser(
   db: DB,
   input: { username: string; displayName: string; password: string; isAdmin?: boolean; student?: StudentInfo },
 ): Promise<User> {
-  const username = normalizeUsername(input.username);
-  if (!USERNAME_RE.test(username)) {
-    throw new GameError("Username must be 3–32 characters: letters, numbers, dot, dash or underscore.");
-  }
+  const username = validUsername(input.username);
   const displayName = input.displayName.trim().slice(0, 60);
   if (!displayName) throw new GameError("Please enter your name.");
   const student = input.student && normalizeStudentInfo(input.student);
@@ -60,6 +65,88 @@ export async function createUser(
     .values({ username, displayName, ...student, passwordHash, isAdmin: input.isAdmin ?? false, createdAt: Date.now() })
     .returning()
     .get();
+}
+
+// ---- Admin account management ---------------------------------------------
+
+export type AccountInfo = { username: string; firstName: string; lastName: string; netId: string; puid: string };
+
+/** Admin edit of an account. NetID and PUID may be blank, since admin-created accounts have none. */
+export function updateAccount(db: DB, actorId: number, userId: number, input: AccountInfo) {
+  const user = db.select().from(users).where(eq(users.id, userId)).get();
+  if (!user) throw new GameError("Account not found.");
+  const username = validUsername(input.username);
+  const firstName = input.firstName.trim().slice(0, 40);
+  const lastName = input.lastName.trim().slice(0, 40);
+  if (!firstName) throw new GameError("Please enter a first name.");
+  const netId = input.netId.trim().toLowerCase() || null;
+  if (netId && !NETID_RE.test(netId)) throw new GameError("NetID must be 2 letters followed by 4 numbers (e.g. ab1234).");
+  const puid = input.puid.trim() || null;
+  if (puid && !PUID_RE.test(puid)) throw new GameError("PUID must be exactly 9 digits.");
+  const takenBy = (col: typeof users.username | typeof users.netId | typeof users.puid, value: string | null) =>
+    value != null && db.select({ id: users.id }).from(users).where(and(eq(col, value), ne(users.id, userId))).get();
+  if (takenBy(users.username, username)) throw new GameError("That username is taken.");
+  if (takenBy(users.netId, netId)) throw new GameError("Another account already has that NetID.");
+  if (takenBy(users.puid, puid)) throw new GameError("Another account already has that PUID.");
+
+  const next = { username, firstName, lastName: lastName || null, displayName: [firstName, lastName].filter(Boolean).join(" "), netId, puid };
+  const changed = (Object.keys(next) as (keyof typeof next)[]).filter((k) => next[k] !== user[k]);
+  if (!changed.length) return;
+  db.transaction((tx) => {
+    tx.update(users).set(next).where(eq(users.id, userId)).run();
+    audit(tx, actorId, null, "admin.update_user", { userId, changed });
+  });
+}
+
+/**
+ * Admin deletes an account. Someone who has played in a started game is anonymized instead,
+ * so kill feeds and past games stay intact; anyone else is removed outright, along with any
+ * registration-phase sign-ups. Players still alive in a running game must be removed from it first.
+ */
+export async function deleteAccount(db: DB, actorId: number, userId: number): Promise<"deleted" | "anonymized"> {
+  if (userId === actorId) throw new GameError("You can't delete your own account.");
+  // Hashed up front: bcrypt is async and the transaction below is synchronous.
+  const unusableHash = await bcrypt.hash(randomBytes(32).toString("base64url"), 12);
+  return db.transaction((tx) => {
+    const user = tx.select().from(users).where(eq(users.id, userId)).get();
+    if (!user) throw new GameError("Account not found.");
+    const rows = tx
+      .select({ p: participants, game: games })
+      .from(participants)
+      .innerJoin(games, eq(games.id, participants.gameId))
+      .where(eq(participants.userId, userId))
+      .all();
+    const alive = rows.find((r) => (r.game.status === "active" || r.game.status === "paused") && r.p.status === "alive");
+    if (alive) throw new GameError(`They're still alive in ${alive.game.name}. Remove them from the game on its Teams page first.`);
+    for (const r of rows) {
+      if (r.game.status !== "registration") continue;
+      tx.delete(participants).where(eq(participants.id, r.p.id)).run();
+      deleteTeamIfEmpty(tx, r.p.teamId);
+    }
+    const played = rows.some((r) => r.game.status !== "registration");
+    if (played) {
+      tx.update(users)
+        .set({
+          username: `deleted-${randomCode(8).toLowerCase()}`,
+          displayName: "Deleted player",
+          firstName: null,
+          lastName: null,
+          netId: null,
+          puid: null,
+          passwordHash: unusableHash,
+          isAdmin: false,
+          mustChangePassword: false,
+        })
+        .where(eq(users.id, userId))
+        .run();
+      tx.delete(sessions).where(eq(sessions.userId, userId)).run();
+    } else {
+      tx.delete(users).where(eq(users.id, userId)).run();
+    }
+    // The name goes in the payload because the account it pointed at is gone.
+    audit(tx, actorId, null, "admin.delete_user", { userId, name: user.displayName, anonymized: played });
+    return played ? "anonymized" : "deleted";
+  });
 }
 
 // ---- Registration code ------------------------------------------------------

@@ -1,4 +1,5 @@
 import { asc } from "drizzle-orm";
+import Link from "next/link";
 import { Flash, PageTitle, fmtDate } from "@/components/ui";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
@@ -16,7 +17,7 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <PageTitle sub="Reset forgotten passwords and hand admin rights to next year's officers.">Users</PageTitle>
+      <PageTitle sub="Fix account details, reset forgotten passwords and hand admin rights to next year's officers.">Users</PageTitle>
       <AdminNav current="/admin/users" />
       <Flash searchParams={sp} />
       <div className="mb-4 grid gap-3 md:grid-cols-2">
@@ -48,6 +49,7 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
                 <td className="whitespace-nowrap text-ink-dim">{fmtDate(u.createdAt)}</td>
                 <td>{u.isAdmin ? <span className="pill chip-info">admin</span> : "player"}</td>
                 <td className="flex flex-wrap justify-end gap-1">
+                  <Link href={`/admin/users/${u.id}`} className="btn btn-sm">Edit</Link>
                   <PasswordForm action={userPasswordAction}>
                     <input type="hidden" name="userId" value={u.id} />
                     <button name="op" value="reset" className="btn btn-sm">Reset password</button>

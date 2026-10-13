@@ -76,6 +76,16 @@ export function getParticipantForUser(c: Conn, gameId: number, userId: number): 
     .get();
 }
 
+/** The started, unfinished game this user is playing in, if any. Their name is locked while it runs. */
+export function runningGameFor(c: Conn, userId: number): Game | undefined {
+  return c
+    .select({ game: games })
+    .from(participants)
+    .innerJoin(games, eq(games.id, participants.gameId))
+    .where(and(eq(participants.userId, userId), inArray(games.status, ["active", "paused"])))
+    .get()?.game;
+}
+
 function getParticipant(c: Conn, participantId: number): Participant {
   const p = c.select().from(participants).where(eq(participants.id, participantId)).get();
   if (!p) throw new GameError("Player not found.");
@@ -390,7 +400,7 @@ function newTeam(c: Conn, gameId: number, name: string): Team {
     .get();
 }
 
-function deleteTeamIfEmpty(c: Conn, teamId: number | null) {
+export function deleteTeamIfEmpty(c: Conn, teamId: number | null) {
   if (teamId != null && teamMembers(c, teamId).length === 0) c.delete(teams).where(eq(teams.id, teamId)).run();
 }
 

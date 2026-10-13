@@ -44,6 +44,8 @@ export const AUDIT_ACTIONS: Record<string, string> = {
   "admin.reshuffle": "Ring reshuffled",
   "admin.create_user": "Account created",
   "admin.reset_password": "Password reset",
+  "admin.update_user": "Account edited",
+  "admin.delete_user": "Account deleted",
   "admin.promote": "Admin added",
   "admin.demote": "Admin removed",
   "announcement.create": "Announcement posted",
@@ -65,6 +67,9 @@ export const AUDIT_GROUPS: Record<string, string> = {
 
 const PARTICIPANT_KEYS = ["participantId", "victimId", "assassinId"];
 const TEAM_KEYS = ["teamId", "from", "to", "fromTeamId", "intoTeamId", "winnerTeamId", "insertBeforeTeamId"];
+
+// displayName is left out: it follows from the first and last name.
+const ACCOUNT_FIELDS: Record<string, string> = { username: "username", firstName: "first name", lastName: "last name", netId: "NetID", puid: "PUID" };
 
 export function parsePayload(json: string): Payload {
   try {
@@ -234,6 +239,12 @@ export function describeAudit({ action, payload: p, actor, actorUserId }: AuditE
       return `${a} created the account for ${user()}.`;
     case "admin.reset_password":
       return `${a} reset ${user()}'s password.`;
+    case "admin.update_user": {
+      const fields = Array.isArray(p.changed) ? p.changed.flatMap((k) => ACCOUNT_FIELDS[String(k)] ?? []) : [];
+      return `${a} edited the account details for ${user()}${fields.length ? ` (${fields.join(", ")})` : ""}.`;
+    }
+    case "admin.delete_user":
+      return `${a} deleted the account for ${typeof p.name === "string" ? p.name : "a player"}${p.anonymized ? " (kept as \"Deleted player\" in past games)" : ""}.`;
     case "admin.promote":
       return `${a} made ${user()} an admin.`;
     case "admin.demote":
