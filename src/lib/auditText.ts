@@ -37,6 +37,7 @@ export const AUDIT_ACTIONS: Record<string, string> = {
   "admin.move_player": "Player moved",
   "admin.merge_teams": "Teams merged",
   "admin.auto_fill": "Teams auto-filled",
+  "admin.kick_player": "Sign-up removed",
   "admin.remove_player": "Player removed",
   "admin.remove_team": "Team removed",
   "admin.revive": "Player revived",
@@ -219,6 +220,8 @@ export function describeAudit({ action, payload: p, actor, actorUserId }: AuditE
       return `${a} merged ${team("fromTeamId", "fromName")} into ${team("intoTeamId")}.`;
     case "admin.auto_fill":
       return `${a} auto-filled ${p.placed} player(s) into teams of ${p.size}.`;
+    case "admin.kick_player":
+      return `${a} removed ${user()} from the game.`;
     case "admin.remove_player":
       return `${a} removed ${player("participantId")}${reason("reason")}.`;
     case "admin.remove_team":

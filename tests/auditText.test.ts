@@ -21,6 +21,9 @@ describe("audit log sentences", () => {
     G.createTeam(db, gameId, extra, "Loners");
     G.leaveTeam(db, gameId, extra);
     G.leaveGame(db, gameId, extra);
+    const [kicked] = makeUsers(db, 1);
+    G.joinGame(db, kicked, gameId, G.getGame(db, gameId).joinCode);
+    G.leaveGame(db, gameId, kicked, userIds[0]);
     G.startGame(db, null, gameId);
     G.pauseGame(db, null, gameId);
     G.resumeGame(db, null, gameId);
@@ -35,6 +38,8 @@ describe("audit log sentences", () => {
     }
     const texts = sentences(db).map((s) => s.text);
     expect(texts).toContain("Player 0 left Loners."); // the team was deleted when it emptied
+    expect(texts).toContain("Player 0 removed Player 0 from the game.");
+    expect(texts.filter((t) => t === "Player 0 left the game.")).toHaveLength(1);
     expect(texts.some((t) => /^Player 0 rejected Player \d's report on Player \d \(reason: In a safe zone\)\.$/.test(t))).toBe(true);
     expect(texts.some((t) => /^System approved Player \d's kill on Player \d\.$/.test(t))).toBe(true);
   });

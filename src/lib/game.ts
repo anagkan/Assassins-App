@@ -438,12 +438,14 @@ export function leaveTeam(db: DB, gameId: number, userId: number) {
   });
 }
 
-export function leaveGame(db: DB, gameId: number, userId: number) {
+/** A player leaves the game during registration, or an admin (`actorId`) removes them. */
+export function leaveGame(db: DB, gameId: number, userId: number, actorId = userId) {
   db.transaction((tx) => {
     const { p } = registrationParticipant(tx, gameId, userId);
     tx.delete(participants).where(eq(participants.id, p.id)).run();
     deleteTeamIfEmpty(tx, p.teamId);
-    audit(tx, userId, gameId, "player.leave");
+    if (actorId === userId) audit(tx, userId, gameId, "player.leave");
+    else audit(tx, actorId, gameId, "admin.kick_player", { userId });
   });
 }
 

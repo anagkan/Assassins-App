@@ -140,7 +140,7 @@ export async function teamAdminAction(fd: FormData) {
           const pid = int(fd, "participantId");
           const p = db.query.participants.findFirst({ where: (p, { eq }) => eq(p.id, pid) }).sync();
           if (!p) throw new G.GameError("Player not found.");
-          return G.leaveGame(db, id, p.userId);
+          return G.leaveGame(db, id, p.userId, admin.id);
         }
         default:
           throw new G.GameError("Unknown action.");
