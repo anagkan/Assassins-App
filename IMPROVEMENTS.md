@@ -45,7 +45,7 @@ Every one of them involves the victim. This app doesn't: victims never see a rep
 
   Web Push needs no email service and works on iOS once the site is added to the home screen. Minimal first step: an in-app "Since your last visit: new target, 1 kill approved" banner.
 
-- [ ] <a id="p3"></a>**P3. Eliminated players hit a dead end.** "You've been eliminated" doesn't say who got you, when, or show any stats. The reports list only shows reports *your team made*, never ones against you.
+- [x] <a id="p3"></a>**P3. Eliminated players hit a dead end.** *Shipped: the "out" banner says who got you, when and where (or that you were removed), and which team finished off yours; a "Your game" card shows kills, time survived and how many players you outlasted; a "Reports against you" list shows settled claims naming you.* "You've been eliminated" doesn't say who got you, when, or show any stats. The reports list only shows reports *your team made*, never ones against you.
 
 - [ ] <a id="p4"></a>**P4. The target card is hard to act on.** Since photos were removed (`febdfc2`), the target is a name plus initials. That may be fine in a club where people know each other. Consider an optional photo, or a short "how to spot me" note that only the player's hunter can see.
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Avatar, Flash, PageTitle, StatusPill, fmtDate, fmtRelative } from "@/components/ui";
+import { Avatar, Flash, PageTitle, StatusPill, fmtDate, fmtDuration, fmtRelative } from "@/components/ui";
 import { getDb } from "@/db";
 import type { Announcement, Game } from "@/db/schema";
 import { getCurrentGame } from "@/lib/game";
@@ -255,7 +255,7 @@ function FinishedPanel({ game }: { game: Game }) {
 }
 
 function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dashboard> }) {
-  const { me, myTeam, target, teamReports, againstMe, deadline } = data;
+  const { me, myTeam, target, teamReports, againstMe, reportsAgainstMe, out, deadline } = data;
   if (!me || !myTeam) return null;
   const solo = myTeam.members.length === 1;
   const iAmAlive = me.status === "alive";
@@ -270,6 +270,16 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
         {!teamAlive ? (
           <div className="rounded-lg bg-stop px-5 py-6 text-center text-stop-ink">
             <div className="h-display text-3xl text-stop-ink">{solo ? "You've been eliminated" : "Your team has been wiped out"}</div>
+            {out && <p className="mt-2"><HowIWentOut out={out} /></p>}
+            {!solo && (
+              <p className="mt-1 text-sm">
+                {myTeam.team.status === "purged"
+                  ? "Your team was removed from the game."
+                  : out?.teamOutBy
+                    ? <>{out.teamOutBy} took out the last of your team.</>
+                    : null}
+              </p>
+            )}
             <p className="mt-2 text-sm">Thanks for playing. Keep watching the <Link href="/feed" className="underline">feed</Link>.</p>
           </div>
         ) : target ? (
@@ -327,8 +337,12 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
           </form>
         )}
         {teamAlive && !iAmAlive && (
-          <div className="card text-sm text-ink-dim">You&apos;re out, but your team is still alive. Cheer them on!</div>
+          <div className="card space-y-1">
+            {out && <p><HowIWentOut out={out} /></p>}
+            <p className="text-sm text-ink-dim">You&apos;re out, but your team is still alive. Cheer them on!</p>
+          </div>
         )}
+        {out && <OutStats out={out} />}
       </div>
 
       <div className="space-y-4 md:col-span-2">
@@ -366,7 +380,58 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
             </ul>
           </div>
         )}
+
+        {reportsAgainstMe.length > 0 && (
+          <div className="card">
+            <div className="label">Reports against you</div>
+            <ul className="space-y-2 text-sm">
+              {reportsAgainstMe.map((r) => (
+                <li key={r.id} className="flex flex-wrap items-center gap-2">
+                  <StatusPill status={r.status} />
+                  <span>{r.assassinName} said they got you</span>
+                  {r.victimResponse === "confirmed" && <span className="text-xs text-ink-dim">you confirmed</span>}
+                  {r.victimResponse === "disputed" && <span className="text-xs text-ink-dim">you disputed</span>}
+                  {r.adminNote && r.status !== "approved" && <span className="w-full text-xs text-ink-dim">“{r.adminNote}”</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+type Out = NonNullable<Extract<ReturnType<typeof dashboard>, { out: unknown }>["out"]>;
+
+function HowIWentOut({ out }: { out: Out }) {
+  if (out.status === "purged") return <>You were removed from the game {fmtRelative(out.at)} ({fmtDate(out.at)}).</>;
+  if (!out.killer) return <>You went out {fmtRelative(out.at)} ({fmtDate(out.at)}).</>;
+  const when = out.occurredAt ?? out.at;
+  return (
+    <>
+      <b>{out.killer}</b> got you {fmtRelative(when)} ({fmtDate(when)}){out.location && <> at {out.location}</>}.
+    </>
+  );
+}
+
+function OutStats({ out }: { out: Out }) {
+  const stats = [
+    { label: "Your kills", value: String(out.kills) },
+    ...(out.survivedMs != null ? [{ label: "Survived", value: fmtDuration(out.survivedMs) }] : []),
+    { label: "Outlasted", value: `${out.outlasted} of ${out.players - 1}` },
+  ];
+  return (
+    <div className="card">
+      <div className="label">Your game</div>
+      <dl className="grid grid-cols-3 gap-3 text-center">
+        {stats.map((s) => (
+          <div key={s.label}>
+            <dt className="text-xs text-ink-dim">{s.label}</dt>
+            <dd className="h-display text-2xl">{s.value}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   );
 }

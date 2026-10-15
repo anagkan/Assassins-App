@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { killReports, participants, teams, users } from "@/db/schema";
 import { DEFAULT_RULES, DEFAULT_SAFE_ZONES } from "@/lib/defaults";
 import * as G from "@/lib/game";
+import { dashboard } from "@/lib/queries";
 import { DAY_MS } from "@/lib/ring";
 import { aliveMembers, aliveTeams, assertRingValid, freshDb, gameRow, killOne, makeUsers, setupGame } from "./helpers";
 
@@ -421,5 +422,28 @@ describe("victim responses", () => {
     expect(G.respondToKill(db, victim.userId, report.id, "confirmed")).toEqual({ stale: true });
     expect(reportRow(db, report.id).status).toBe("stale");
     expect(db.select().from(participants).where(eq(participants.id, victim.id)).get()!.status).toBe("alive");
+  });
+});
+
+describe("eliminated player's dashboard", () => {
+  it("says who got them, with stats and the report against them", () => {
+    const db = freshDb();
+    const { gameId } = setupGame(db, [1, 1, 1]);
+    G.startGame(db, null, gameId);
+    const hunter = aliveTeams(db, gameId)[0];
+    const assassin = aliveMembers(db, hunter.id)[0];
+    const victim = aliveMembers(db, hunter.targetTeamId!)[0];
+    const r = G.submitKill(db, gameId, assassin.userId, victim.id, { location: "Front lawn" });
+    G.approveKill(db, null, r.id);
+
+    const d = dashboard(db, gameRow(db, gameId), victim.userId);
+    if (!d.me) throw new Error("not playing");
+    const killer = db.select().from(users).where(eq(users.id, assassin.userId)).get()!;
+    expect(d.out).toMatchObject({ status: "eliminated", killer: killer.displayName, location: "Front lawn", kills: 0, outlasted: 0, players: 3 });
+    expect(d.reportsAgainstMe).toHaveLength(1);
+    expect(d.reportsAgainstMe[0]).toMatchObject({ status: "approved", assassinName: killer.displayName });
+
+    const alive = dashboard(db, gameRow(db, gameId), assassin.userId);
+    expect(alive.me && alive.out).toBeNull();
   });
 });

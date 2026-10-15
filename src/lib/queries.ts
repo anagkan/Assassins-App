@@ -1,6 +1,6 @@
-import { aliasedTable, and, asc, count, desc, eq, gt, gte, inArray, isNull, lte, or } from "drizzle-orm";
+import { aliasedTable, and, asc, count, desc, eq, gt, gte, inArray, isNotNull, isNull, lte, or } from "drizzle-orm";
 import type { DB } from "@/db";
-import { announcements, killReports, participants, teams, users, type Game, type Team } from "@/db/schema";
+import { announcements, killReports, participants, teams, users, type Game, type Participant, type Team } from "@/db/schema";
 import { getParticipantForUser, reportProblem } from "./game";
 import { inactivityDeadline, ringOrder, type Ring } from "./ring";
 
@@ -110,12 +110,71 @@ export function dashboard(db: DB, game: Game, userId: number) {
     .orderBy(asc(killReports.createdAt))
     .all();
 
+  // Settled reports naming me as the victim (pending ones are the prompt above).
+  const reportsAgainstMe = db
+    .select({
+      id: killReports.id,
+      status: killReports.status,
+      adminNote: killReports.adminNote,
+      victimResponse: killReports.victimResponse,
+      assassinName: assassinU.displayName,
+    })
+    .from(killReports)
+    .innerJoin(assassinP, eq(assassinP.id, killReports.assassinId))
+    .innerJoin(assassinU, eq(assassinU.id, assassinP.userId))
+    .where(and(eq(killReports.victimId, me.id), inArray(killReports.status, ["approved", "rejected", "stale"])))
+    .orderBy(desc(killReports.createdAt))
+    .limit(10)
+    .all();
+
+  const out = me.status !== "alive" ? howIWentOut(db, game, me) : null;
+
   const deadline =
     playing && game.inactivityDays != null && myTeam
       ? inactivityDeadline(myTeam.team.activityAt ?? game.startedAt ?? Date.now(), game.inactivityDays, game.pausedAt, Date.now())
       : null;
 
-  return { me, myTeam, target, teamReports, againstMe, deadline } as const;
+  return { me, myTeam, target, teamReports, againstMe, reportsAgainstMe, out, deadline } as const;
+}
+
+/** Who got an eliminated player, when and where, plus a few numbers for their game. */
+function howIWentOut(db: DB, game: Game, me: Participant) {
+  const at = me.eliminatedAt ?? Date.now();
+  const assassinP = aliasedTable(participants, "assassin_p");
+  const kill =
+    me.status === "eliminated"
+      ? (db
+          .select({ killer: users.displayName, occurredAt: killReports.occurredAt, location: killReports.location })
+          .from(killReports)
+          .innerJoin(assassinP, eq(assassinP.id, killReports.assassinId))
+          .innerJoin(users, eq(users.id, assassinP.userId))
+          .where(and(eq(killReports.victimId, me.id), eq(killReports.status, "approved")))
+          .orderBy(desc(killReports.reviewedAt))
+          .get() ?? null)
+      : null;
+  const players = db
+    .select({ status: participants.status, eliminatedAt: participants.eliminatedAt })
+    .from(participants)
+    .where(and(eq(participants.gameId, game.id), isNotNull(participants.teamId)))
+    .all();
+  const outBefore = players.filter((p) => p.status !== "alive" && p.eliminatedAt != null && p.eliminatedAt < at).length;
+  const team = me.teamId != null ? db.select().from(teams).where(eq(teams.id, me.teamId)).get() : undefined;
+  const byTeam =
+    team?.eliminatedByTeamId != null
+      ? (db.select({ name: teams.name }).from(teams).where(eq(teams.id, team.eliminatedByTeamId)).get()?.name ?? null)
+      : null;
+  return {
+    status: me.status as "eliminated" | "purged",
+    at,
+    killer: kill?.killer ?? null,
+    occurredAt: kill?.occurredAt ?? null,
+    location: kill?.location ?? "",
+    kills: me.kills,
+    survivedMs: game.startedAt != null ? Math.max(0, at - game.startedAt) : null,
+    outlasted: outBefore,
+    players: players.length,
+    teamOutBy: byTeam,
+  };
 }
 
 export type FeedEvent =
