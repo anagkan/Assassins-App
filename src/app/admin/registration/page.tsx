@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ShareCode } from "@/components/ShareCode";
 import { Flash, PageTitle } from "@/components/ui";
 import { getDb } from "@/db";
 import { getRegistrationCode } from "@/lib/auth";
@@ -21,7 +22,8 @@ export default async function RegistrationAdmin({ searchParams }: { searchParams
           {code ? (
             <>
               <div className="font-mono text-2xl tracking-[0.3em] text-accent">{code}</div>
-              <p className="text-xs text-ink-dim">New players need this to create an account. Share it with the club.</p>
+              <p className="text-xs text-ink-dim">New players need this to create an account. Share it with the club, or share the sign-up link, which fills it in.</p>
+              <ShareCode path={`/register?code=${encodeURIComponent(code)}`} title="Sign up for Colonial Assassins" />
             </>
           ) : (
             <p className="text-sm">

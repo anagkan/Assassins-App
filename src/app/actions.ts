@@ -7,37 +7,42 @@ import { users } from "@/db/schema";
 import { checkRegistrationCode, createUser, setPassword, verifyLogin } from "@/lib/auth";
 import { act, int, str } from "@/lib/flash";
 import * as G from "@/lib/game";
+import { inviteQuery, readInvite } from "@/lib/invite";
 import { clear, hit, isLimited, rateLimit } from "@/lib/rateLimit";
 import { clientIp, endSession, requireUser, startSession } from "@/lib/session";
 
 export async function loginAction(fd: FormData) {
   const username = str(fd, "username");
+  const invite = readInvite(fd);
+  const back = `/login${inviteQuery(invite)}`;
+  const sep = back.includes("?") ? "&" : "?";
   const ip = await clientIp();
   // Only failed attempts count, so switching between accounts never locks anyone out.
   const ipKey = `login:ip:${ip}`;
   const userKey = `login:user:${username.toLowerCase()}`;
   if (isLimited(ipKey, 20) || isLimited(userKey, 8)) {
-    redirect(`/login?error=${encodeURIComponent("Too many failed attempts. Try again in a few minutes.")}`);
+    redirect(`${back}${sep}error=${encodeURIComponent("Too many failed attempts. Try again in a few minutes.")}`);
   }
   const user = await verifyLogin(getDb(), username, str(fd, "password"));
   if (!user) {
     hit(ipKey, 15 * 60_000);
     hit(userKey, 15 * 60_000);
-    redirect(`/login?error=${encodeURIComponent("Wrong username or password.")}`);
+    redirect(`${back}${sep}error=${encodeURIComponent("Wrong username or password.")}`);
   }
   clear(userKey);
   await startSession(user.id);
   if (user.mustChangePassword) redirect("/account?error=" + encodeURIComponent("Please choose a new password."));
-  redirect(user.isAdmin ? "/admin" : "/");
+  redirect(user.isAdmin ? "/admin" : `/${inviteQuery(invite)}`);
 }
 
 export async function registerAction(fd: FormData) {
   const ip = await clientIp();
+  const q = inviteQuery(readInvite(fd));
   if (!rateLimit(`register:${ip}`, 10, 60 * 60_000)) {
-    redirect(`/register?error=${encodeURIComponent("Too many sign-ups from your network. Try later.")}`);
+    redirect(`/register${q}${q ? "&" : "?"}error=${encodeURIComponent("Too many sign-ups from your network. Try later.")}`);
   }
   const db = getDb();
-  await act("/register", async () => {
+  await act(`/register${q}`, async () => {
     checkRegistrationCode(db, str(fd, "registrationCode"));
     if (str(fd, "password") !== str(fd, "confirm")) throw new G.GameError("Passwords don't match.");
     const firstName = str(fd, "firstName").trim();
@@ -49,7 +54,8 @@ export async function registerAction(fd: FormData) {
       student: { firstName, lastName, netId: str(fd, "netId"), puid: str(fd, "puid") },
     });
     await startSession(user.id);
-    redirect("/?ok=" + encodeURIComponent("Welcome! Your account is ready. Enter the game's join code to join."));
+    const next = q ? "Welcome! Your account is ready." : "Welcome! Your account is ready. Enter the game's join code to join.";
+    redirect(`/${q}${q ? "&" : "?"}ok=${encodeURIComponent(next)}`);
   });
 }
 
@@ -60,7 +66,20 @@ export async function logoutAction() {
 
 export async function joinGameAction(fd: FormData) {
   const user = await requireUser();
-  await act("/", () => G.joinGame(getDb(), user.id, int(fd, "gameId"), str(fd, "joinCode")), "You've joined the game!");
+  await act("/", () => {
+    const db = getDb();
+    const gameId = int(fd, "gameId");
+    G.joinGame(db, user.id, gameId, str(fd, "joinCode"));
+    // Arrived from a team share link: join that team too, so it's one tap instead of two.
+    const inviteCode = str(fd, "inviteCode");
+    if (!inviteCode) return "You've joined the game!";
+    try {
+      return `You've joined the game and ${G.joinTeam(db, gameId, user.id, inviteCode).name}.`;
+    } catch (e) {
+      if (e instanceof G.GameError) return `You've joined the game, but not the team: ${e.message}`;
+      throw e;
+    }
+  }, (m) => m as string);
 }
 
 export async function leaveGameAction(fd: FormData) {

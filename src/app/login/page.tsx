@@ -3,20 +3,26 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Flash } from "@/components/ui";
+import { inviteQuery, readInvite } from "@/lib/invite";
 import { getCurrentUser } from "@/lib/session";
 import { loginAction } from "../actions";
 
 export const metadata: Metadata = { title: "Log in" };
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
-  if (await getCurrentUser()) redirect("/");
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; join?: string; team?: string }> }) {
   const sp = await searchParams;
+  const invite = readInvite(sp);
+  if (await getCurrentUser()) redirect(`/${inviteQuery(invite)}`);
   return (
     <div className="mx-auto max-w-sm pt-8">
       <h1 className="h-display mb-1 text-4xl">Log in</h1>
-      <p className="mb-6 text-sm text-ink-dim">Trust no one.</p>
+      <p className="mb-6 text-sm text-ink-dim">
+        {invite.join || invite.team ? `Log in to use your ${invite.join ? "join" : "team invite"} link.` : "Trust no one."}
+      </p>
       <Flash searchParams={sp} />
       <form action={loginAction} className="card space-y-4">
+        {invite.join && <input type="hidden" name="join" value={invite.join} />}
+        {invite.team && <input type="hidden" name="team" value={invite.team} />}
         <div>
           <label className="label" htmlFor="username">Username</label>
           <input className="input" id="username" name="username" autoComplete="username" autoCapitalize="none" required />
@@ -28,7 +34,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <SubmitButton className="btn btn-primary w-full" pendingLabel="Logging in…">Log in</SubmitButton>
       </form>
       <p className="mt-4 text-center text-sm text-ink-dim">
-        New this semester? <Link href="/register" className="text-accent underline">Create an account</Link>
+        New this semester? <Link href={`/register${inviteQuery(invite)}`} className="text-accent underline">Create an account</Link>
         <br />
         Forgot your password? Ask a game admin to reset it.
       </p>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { ConfirmButton, TypedConfirm } from "@/components/confirm";
+import { ShareCode } from "@/components/ShareCode";
 import { getDb } from "@/db";
 import { teams } from "@/db/schema";
 import { DEFAULT_RULES, DEFAULT_SAFE_ZONES } from "@/lib/defaults";
@@ -45,8 +46,11 @@ export default async function GameOverview({ params, searchParams }: { params: P
             <div className="rounded-md border border-line p-3">
               <div className="label">Join code</div>
               <div className="font-mono text-2xl tracking-[0.3em] text-accent">{game.joinCode}</div>
-              <p className="mt-1 text-xs text-ink-dim">Players enter this on their dashboard to join this game. Share it with the club.</p>
-              <form action={gameStatusAction} className="mt-2">
+              <p className="mt-1 text-xs text-ink-dim">
+                Players enter this on their dashboard to join this game. Share it with the club, or share the link: it fills the code in for them (<span className="font-mono">/join/{game.joinCode}</span>).
+              </p>
+              <form action={gameStatusAction} className="mt-2 flex flex-wrap gap-2">
+                <ShareCode path={`/join/${game.joinCode}`} title={`Join ${game.name}`} />
                 <input type="hidden" name="gameId" value={game.id} />
                 <ConfirmButton name="op" value="joincode" className="btn btn-sm" message="Generate a new join code? The current one stops working, including anywhere it's already been shared.">Regenerate</ConfirmButton>
               </form>

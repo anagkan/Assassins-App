@@ -51,7 +51,7 @@ Every one of them involves the victim. This app doesn't: victims never see a rep
 
 ### Medium
 
-- [ ] <a id="p5"></a>**P5. Joining takes three codes and a lot of typing.** Registration code, then join code, then team invite code. `/register` already prefills `?code=`, but the join and team forms don't read anything from the URL. Add share links (`/join/ABC123`, `/team/XYZ789`) and a copy/share button next to each code.
+- [x] <a id="p5"></a>**P5. Joining takes three codes and a lot of typing.** *Shipped: `/join/CODE` and `/team/CODE` links carry their code through login or sign-up and prefill the dashboard. A team link used before joining the game joins the team in the same tap, and a player already on a team is offered a switch. "Share link" buttons (the share sheet on phones, copy elsewhere) sit next to the team invite code, the game's join code, each team's code on the admin Teams page, and the registration code.* Registration code, then join code, then team invite code. `/register` already prefills `?code=`, but the join and team forms don't read anything from the URL. Add share links (`/join/ABC123`, `/team/XYZ789`) and a copy/share button next to each code.
 
 - [ ] <a id="p6"></a>**P6. Login is username-only; recovery means asking an admin.** Players forget usernames between semesters. Allow logging in with NetID, which is already unique and stored.
 

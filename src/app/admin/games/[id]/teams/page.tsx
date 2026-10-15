@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Avatar, Empty, StatusPill } from "@/components/ui";
 import { ConfirmButton } from "@/components/confirm";
+import { ShareCode } from "@/components/ShareCode";
 import { getDb } from "@/db";
 import type { Team } from "@/db/schema";
 import { adminTeams, type Member } from "@/lib/queries";
@@ -225,7 +226,12 @@ export default async function TeamsAdmin({
                   {!reg && <StatusPill status={team.status} />}
                   <span className="text-xs text-ink-dim">{members.length} player{members.length === 1 ? "" : "s"} · {team.kills} kills</span>
                 </div>
-                {reg && <p className="text-xs text-ink-dim">Invite code <span className="font-mono text-accent">{team.inviteCode}</span></p>}
+                {reg && (
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-ink-dim">
+                    Invite code <span className="font-mono text-accent">{team.inviteCode}</span>
+                    <ShareCode path={`/team/${team.inviteCode}`} title={`Join ${team.name}`} className="btn btn-sm" />
+                  </div>
+                )}
                 {targetName && <p className="text-sm">Hunting <b>{targetName}</b></p>}
 
                 <ul className="space-y-2">

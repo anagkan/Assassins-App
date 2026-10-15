@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { ShareCode } from "@/components/ShareCode";
 import { Avatar, Flash, PageTitle, StatusPill, fmtDate, fmtDuration, fmtRelative } from "@/components/ui";
 import { getDb } from "@/db";
 import type { Announcement, Game } from "@/db/schema";
 import { getCurrentGame } from "@/lib/game";
+import { readInvite, type Invite } from "@/lib/invite";
 import { activeAnnouncements, dashboard, gameStats, teamWithMembers, type Member } from "@/lib/queries";
 import { requireUser } from "@/lib/session";
 import {
@@ -19,11 +21,12 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type SP = Promise<{ ok?: string; error?: string }>;
+type SP = Promise<{ ok?: string; error?: string; join?: string; team?: string }>;
 
 export default async function Dashboard({ searchParams }: { searchParams: SP }) {
   const user = await requireUser();
   const sp = await searchParams;
+  const invite = readInvite(sp);
   const db = getDb();
   const game = getCurrentGame(db);
 
@@ -62,9 +65,9 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
       {notices.length > 0 && <Notices items={notices} />}
 
       {!data.me ? (
-        user.isAdmin ? <AdminPanel /> : <JoinPanel game={game} />
+        user.isAdmin ? <AdminPanel /> : <JoinPanel game={game} invite={invite} />
       ) : game.status === "registration" ? (
-        <RegistrationPanel game={game} teamId={data.me.teamId} />
+        <RegistrationPanel game={game} teamId={data.me.teamId} invite={invite} />
       ) : game.status === "finished" ? (
         <FinishedPanel game={game} />
       ) : (
@@ -105,7 +108,7 @@ function AdminPanel() {
   );
 }
 
-function JoinPanel({ game }: { game: Game }) {
+function JoinPanel({ game, invite }: { game: Game; invite: Invite }) {
   if (game.status === "registration" && !game.signupsOpen) {
     return (
       <div className="card">
@@ -124,11 +127,18 @@ function JoinPanel({ game }: { game: Game }) {
     <form action={joinGameAction} className="card max-w-md space-y-3">
       <h2 className="h-display text-xl">Join {game.name}</h2>
       <input type="hidden" name="gameId" value={game.id} />
+      {invite.team && <input type="hidden" name="inviteCode" value={invite.team} />}
       <div>
         <label className="label" htmlFor="joinCode">Join code</label>
-        <input className="input uppercase" id="joinCode" name="joinCode" required />
+        <input className="input uppercase" id="joinCode" name="joinCode" defaultValue={invite.join} required autoCapitalize="characters" />
+        {invite.team && (
+          <p className="mt-1 text-xs text-ink-dim">
+            You&apos;ll join the team with invite code <span className="font-mono text-accent">{invite.team}</span> at the same time.
+            {!invite.join && " Get the game's join code from the club officers."}
+          </p>
+        )}
       </div>
-      <button className="btn btn-primary">Join game</button>
+      <button className="btn btn-primary">{invite.team ? "Join game and team" : "Join game"}</button>
     </form>
   );
 }
@@ -139,10 +149,12 @@ function teamLimitText(game: Game) {
   return `Teams can have ${max} players${game.minTeamSize > 1 ? ` (minimum ${game.minTeamSize})` : ""}.`;
 }
 
-function RegistrationPanel({ game, teamId }: { game: Game; teamId: number | null }) {
+function RegistrationPanel({ game, teamId, invite }: { game: Game; teamId: number | null; invite: Invite }) {
   const db = getDb();
   const team = teamId != null ? teamWithMembers(db, teamId) : null;
   const solo = game.maxTeamSize === 1;
+  // A team link for a different team than the one you're on: offer to switch.
+  const switchTo = !solo && team && invite.team && invite.team !== team.team.inviteCode ? invite.team : undefined;
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <div className="card md:col-span-2">
@@ -161,7 +173,10 @@ function RegistrationPanel({ game, teamId }: { game: Game; teamId: number | null
           {!solo && (
             <div>
               <div className="label">Invite code. Share it with your teammates.</div>
-              <div className="font-mono text-2xl tracking-[0.3em] text-accent">{team.team.inviteCode}</div>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="font-mono text-2xl tracking-[0.3em] text-accent">{team.team.inviteCode}</div>
+                <ShareCode path={`/team/${team.team.inviteCode}`} title={`Join ${team.team.name} in ${game.name}`} />
+              </div>
             </div>
           )}
           <MemberList members={team.members} />
@@ -176,6 +191,16 @@ function RegistrationPanel({ game, teamId }: { game: Game; teamId: number | null
             <input type="hidden" name="gameId" value={game.id} />
             <button className="btn btn-danger btn-sm">Leave team</button>
           </form>
+          {switchTo && (
+            <form action={joinTeamAction} className="space-y-2 border-t border-line pt-4">
+              <p className="text-sm">
+                You opened an invite link for another team (<span className="font-mono text-accent">{switchTo}</span>). Joining it takes you off {team.team.name}.
+              </p>
+              <input type="hidden" name="gameId" value={game.id} />
+              <input type="hidden" name="inviteCode" value={switchTo} />
+              <button className="btn btn-sm">Switch to that team</button>
+            </form>
+          )}
         </div>
       ) : (
         <div className="card space-y-5">
@@ -190,7 +215,7 @@ function RegistrationPanel({ game, teamId }: { game: Game; teamId: number | null
             <form action={joinTeamAction} className="space-y-2 border-t border-line pt-4">
               <h2 className="h-display text-xl">Join a team</h2>
               <input type="hidden" name="gameId" value={game.id} />
-              <input className="input font-mono uppercase" name="inviteCode" placeholder="Invite code" required />
+              <input className="input font-mono uppercase" name="inviteCode" placeholder="Invite code" defaultValue={invite.team} required autoCapitalize="characters" />
               <button className="btn">Join team</button>
             </form>
           )}

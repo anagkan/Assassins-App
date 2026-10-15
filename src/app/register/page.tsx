@@ -5,6 +5,7 @@ import { SubmitButton } from "@/components/SubmitButton";
 import { Flash } from "@/components/ui";
 import { getDb } from "@/db";
 import { getRegistrationCode } from "@/lib/auth";
+import { inviteQuery, readInvite } from "@/lib/invite";
 import { getCurrentUser } from "@/lib/session";
 import { registerAction } from "../actions";
 
@@ -12,19 +13,26 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Create an account" };
 
-export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; code?: string }> }) {
-  if (await getCurrentUser()) redirect("/");
+export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; code?: string; join?: string; team?: string }> }) {
   const sp = await searchParams;
+  const invite = readInvite(sp);
+  if (await getCurrentUser()) redirect(`/${inviteQuery(invite)}`);
   const open = getRegistrationCode(getDb()) != null;
   return (
     <div className="mx-auto max-w-sm pt-8">
       <h1 className="h-display mb-1 text-4xl">Sign up</h1>
       <p className="mb-6 text-sm text-ink-dim">
-        {open ? "Create your account, then join this semester's game from your dashboard." : "Account sign-ups are closed right now."}
+        {!open
+          ? "Account sign-ups are closed right now."
+          : invite.join || invite.team
+            ? "Create your account and we'll take you straight to the game with your code filled in."
+            : "Create your account, then join this semester's game from your dashboard."}
       </p>
       <Flash searchParams={sp} />
       {open && (
         <form action={registerAction} className="card space-y-4">
+          {invite.join && <input type="hidden" name="join" value={invite.join} />}
+          {invite.team && <input type="hidden" name="team" value={invite.team} />}
           <div>
             <label className="label" htmlFor="registrationCode">Registration code</label>
             <input className="input uppercase" id="registrationCode" name="registrationCode" defaultValue={sp.code} required autoCapitalize="characters" />
@@ -65,7 +73,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
         </form>
       )}
       <p className="mt-4 text-center text-sm text-ink-dim">
-        Played before? <Link href="/login" className="text-accent underline">Log in</Link> and join from your dashboard.
+        Played before? <Link href={`/login${inviteQuery(invite)}`} className="text-accent underline">Log in</Link> and join from your dashboard.
       </p>
     </div>
   );
