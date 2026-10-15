@@ -80,6 +80,7 @@ export function dashboard(db: DB, game: Game, userId: number) {
           victimResponse: killReports.victimResponse,
           assassinId: killReports.assassinId,
           assassinName: assassinU.displayName,
+          victimId: killReports.victimId,
           victimName: victimU.displayName,
         })
         .from(killReports)

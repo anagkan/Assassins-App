@@ -308,7 +308,8 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
   const solo = myTeam.members.length === 1;
   const iAmAlive = me.status === "alive";
   const teamAlive = myTeam.team.status === "alive";
-  const pendingVictims = new Set(teamReports.filter((r) => r.status === "pending").map((r) => r.victimName));
+  const pendingVictims = new Set(teamReports.filter((r) => r.status === "pending").map((r) => r.victimId));
+  const reportable = target?.members.filter((m) => m.status === "alive" && !pendingVictims.has(m.participantId)) ?? [];
 
   return (
     <div className="grid gap-4 md:grid-cols-5">
@@ -353,18 +354,22 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
           </div>
         ) : null}
 
-        {teamAlive && iAmAlive && target && game.status === "active" && (
+        {teamAlive && iAmAlive && target && game.status === "active" && reportable.length === 0 && (
+          <div className="card space-y-1">
+            <h2 className="h-display text-xl">Report a kill</h2>
+            <p className="text-sm text-ink-dim">All reports are waiting for review.</p>
+          </div>
+        )}
+        {teamAlive && iAmAlive && target && game.status === "active" && reportable.length > 0 && (
           <form action={submitKillAction} className="card space-y-3">
             <h2 className="h-display text-xl">Report a kill</h2>
             <input type="hidden" name="gameId" value={game.id} />
             <div>
               <label className="label" htmlFor="victimId">Who did you get?</label>
               <select className="input" id="victimId" name="victimId" required>
-                {target.members
-                  .filter((m) => m.status === "alive" && !pendingVictims.has(m.displayName))
-                  .map((m) => (
-                    <option key={m.participantId} value={m.participantId}>{m.displayName}</option>
-                  ))}
+                {reportable.map((m) => (
+                  <option key={m.participantId} value={m.participantId}>{m.displayName}</option>
+                ))}
               </select>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">

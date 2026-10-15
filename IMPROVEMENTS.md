@@ -55,7 +55,7 @@ Every one of them involves the victim. This app doesn't: victims never see a rep
 
 - [ ] <a id="p6"></a>**P6. Login is username-only; recovery means asking an admin.** Players forget usernames between semesters. Allow logging in with NetID, which is already unique and stored.
 
-- [ ] <a id="p7"></a>**P7. The kill report form can be empty.** If every alive target member already has a pending report, the "Who did you get?" select has no options but the form still renders (`src/app/page.tsx`, `PlayingPanel`). Hide it and say "All reports are waiting for review."
+- [x] <a id="p7"></a>**P7. The kill report form can be empty.** *Shipped: when every alive target member already has a pending report, the form is replaced by "All reports are waiting for review." Pending victims are matched by participant ID.* If every alive target member already has a pending report, the "Who did you get?" select has no options but the form still renders (`src/app/page.tsx`, `PlayingPanel`). Hide it and say "All reports are waiting for review."
   - Pending victims are matched by display name (`pendingVictims`), so duplicate names break it. Match on participant ID.
 
 - [ ] <a id="p8"></a>**P8. Kills can't be reported during a pause, even ones from before it.** Allow backdated reports while paused, and cap `occurredAt` between the game start and the pause time.
