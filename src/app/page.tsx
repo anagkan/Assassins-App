@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ConfirmButton } from "@/components/confirm";
 import { ShareCode } from "@/components/ShareCode";
 import { Avatar, Flash, PageTitle, StatusPill, fmtDate, fmtDuration, fmtRelative } from "@/components/ui";
 import { getDb } from "@/db";
@@ -155,6 +156,8 @@ function RegistrationPanel({ game, teamId, invite }: { game: Game; teamId: numbe
   const solo = game.maxTeamSize === 1;
   // A team link for a different team than the one you're on: offer to switch.
   const switchTo = !solo && team && invite.team && invite.team !== team.team.inviteCode ? invite.team : undefined;
+  // Leaving (or switching off) a team you're alone on deletes it.
+  const lastOne = team?.members.length === 1;
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <div className="card md:col-span-2">
@@ -189,7 +192,16 @@ function RegistrationPanel({ game, teamId, invite }: { game: Game; teamId: numbe
           )}
           <form action={leaveTeamAction}>
             <input type="hidden" name="gameId" value={game.id} />
-            <button className="btn btn-danger btn-sm">Leave team</button>
+            <ConfirmButton
+              className="btn btn-danger btn-sm"
+              message={
+                lastOne
+                  ? `Leave ${team.team.name}? You're its only member, so the team will be deleted.`
+                  : `Leave ${team.team.name}? You'll need its invite code to rejoin.`
+              }
+            >
+              Leave team
+            </ConfirmButton>
           </form>
           {switchTo && (
             <form action={joinTeamAction} className="space-y-2 border-t border-line pt-4">
@@ -198,7 +210,12 @@ function RegistrationPanel({ game, teamId, invite }: { game: Game; teamId: numbe
               </p>
               <input type="hidden" name="gameId" value={game.id} />
               <input type="hidden" name="inviteCode" value={switchTo} />
-              <button className="btn btn-sm">Switch to that team</button>
+              <ConfirmButton
+                className="btn btn-sm"
+                message={`Leave ${team.team.name} and join the other team?${lastOne ? ` You're its only member, so ${team.team.name} will be deleted.` : ""}`}
+              >
+                Switch to that team
+              </ConfirmButton>
             </form>
           )}
         </div>
@@ -234,7 +251,12 @@ function RegistrationPanel({ game, teamId, invite }: { game: Game; teamId: numbe
         </ul>
         <form action={leaveGameAction}>
           <input type="hidden" name="gameId" value={game.id} />
-          <button className="btn btn-sm">Withdraw from game</button>
+          <ConfirmButton
+            className="btn btn-sm"
+            message={`Withdraw from ${game.name}?${team ? ` You'll come off ${team.team.name}.` : ""} You'll need the join code to sign up again.`}
+          >
+            Withdraw from game
+          </ConfirmButton>
         </form>
       </div>
     </div>
@@ -396,7 +418,12 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
                   {r.status === "pending" && r.assassinId === me.id && (
                     <form action={withdrawKillAction} className="ml-auto">
                       <input type="hidden" name="reportId" value={r.id} />
-                      <button className="px-1 py-1.5 text-xs text-ink-dim underline">withdraw</button>
+                      <ConfirmButton
+                        className="px-1 py-1.5 text-xs text-ink-dim underline"
+                        message={`Withdraw your report on ${r.victimName}? It will be deleted; you'd have to report the kill again.`}
+                      >
+                        withdraw
+                      </ConfirmButton>
                     </form>
                   )}
                   {r.adminNote && r.status !== "pending" && <span className="w-full text-xs text-ink-dim">“{r.adminNote}”</span>}
@@ -481,7 +508,14 @@ function KillClaim({ report: r }: { report: Claim }) {
           </p>
           <form action={respondToKillAction}>
             <input type="hidden" name="reportId" value={r.id} />
-            <button name="response" value="confirm" className="btn btn-primary">Confirm, I&apos;m out</button>
+            <ConfirmButton
+              name="response"
+              value="confirm"
+              className="btn btn-primary"
+              message={`Confirm that ${r.assassinName} got you? You'll be out of the game right away.`}
+            >
+              Confirm, I&apos;m out
+            </ConfirmButton>
           </form>
           <details className="border-t border-line pt-3">
             <summary className="cursor-pointer text-sm">Dispute it</summary>

@@ -60,7 +60,7 @@ Every one of them involves the victim. This app doesn't: victims never see a rep
 
 - [ ] <a id="p8"></a>**P8. Kills can't be reported during a pause, even ones from before it.** Allow backdated reports while paused, and cap `occurredAt` between the game start and the pause time.
 
-- [ ] <a id="p9"></a>**P9. No confirmation before destructive player actions.** There is no `confirm()` or client component anywhere, so one tap leaves a team, withdraws from the game, or withdraws a report.
+- [x] <a id="p9"></a>**P9. No confirmation before destructive player actions.** *Shipped: a confirm dialog on Leave team, Switch to that team, Withdraw from game, withdrawing a report, and "Confirm, I'm out". It warns when leaving would delete a team you're alone on.* There is no `confirm()` or client component anywhere, so one tap leaves a team, withdraws from the game, or withdraws a report.
 
 - [x] <a id="p10"></a>**P10. Mobile navigation is cramped.** *Shipped: phones get a bottom tab bar; History, Admin and Log out moved to the Me page (Admin also stays in the header).* Seven header links in a sideways-scrolling strip, and History is hidden on phones. A bottom tab bar (Home / Feed / Standings / Rules / Me) suits phone players better.
 
