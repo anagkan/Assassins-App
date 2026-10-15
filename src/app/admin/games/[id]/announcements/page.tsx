@@ -25,7 +25,7 @@ export default async function AnnouncementsAdmin({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ ok?: string; error?: string; edit?: string; copy?: string }>;
+  searchParams: Promise<{ edit?: string; copy?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
@@ -39,7 +39,7 @@ export default async function AnnouncementsAdmin({
 
   return (
     <>
-      <GameHeader id={id} current={base} sp={sp} />
+      <GameHeader id={id} current={base} />
       <div className="grid gap-4 md:grid-cols-2">
         <form key={`${editing ? "edit" : "new"}-${source?.id ?? ""}`} action={announcementAction} className="card space-y-3 self-start">
           <h2 className="h-display text-xl">{editing ? "Edit announcement" : source ? "Post a copy" : "Post an immunity, rule or announcement"}</h2>

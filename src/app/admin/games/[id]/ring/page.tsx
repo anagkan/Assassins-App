@@ -8,9 +8,8 @@ import { GameHeader, gameMetadata, loadGame } from "../../../GameHeader";
 
 export const generateMetadata = gameMetadata("Ring & inactivity");
 
-export default async function RingPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: string; error?: string }> }) {
+export default async function RingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const sp = await searchParams;
   const game = loadGame(id);
   const db = getDb();
   const live = game.status === "active" || game.status === "paused";
@@ -20,7 +19,7 @@ export default async function RingPage({ params, searchParams }: { params: Promi
 
   return (
     <>
-      <GameHeader id={id} current={`/admin/games/${game.id}/ring`} sp={sp} />
+      <GameHeader id={id} current={`/admin/games/${game.id}/ring`} />
       <p className="mb-4 text-sm text-warn-ink">This page shows every assignment. Don&apos;t screen-share it.</p>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="card">

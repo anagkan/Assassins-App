@@ -10,9 +10,8 @@ const QUICK_REJECT_REASONS = ["In a safe zone", "Against the rules", "Not enough
 
 export const generateMetadata = gameMetadata("Kill queue");
 
-export default async function KillQueue({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: string; error?: string }> }) {
+export default async function KillQueue({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const sp = await searchParams;
   const game = loadGame(id);
   const db = getDb();
   const pending = pendingReports(db, game.id);
@@ -34,7 +33,7 @@ export default async function KillQueue({ params, searchParams }: { params: Prom
 
   return (
     <>
-      <GameHeader id={id} current={`/admin/games/${game.id}/kills`} sp={sp} />
+      <GameHeader id={id} current={`/admin/games/${game.id}/kills`} />
       {confirmed.length > 0 && (
         <section className="mb-8">
           <div className="mb-1 flex flex-wrap items-baseline gap-3">

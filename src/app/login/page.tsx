@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SubmitButton } from "@/components/SubmitButton";
-import { Flash } from "@/components/ui";
+import { Flash } from "@/components/Flash";
 import { inviteQuery, readInvite } from "@/lib/invite";
 import { getCurrentUser } from "@/lib/session";
 import { loginAction } from "../actions";
 
 export const metadata: Metadata = { title: "Log in" };
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; join?: string; team?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ join?: string; team?: string }> }) {
   const sp = await searchParams;
   const invite = readInvite(sp);
   if (await getCurrentUser()) redirect(`/${inviteQuery(invite)}`);
@@ -19,7 +19,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <p className="mb-6 text-sm text-ink-dim">
         {invite.join || invite.team ? `Log in to use your ${invite.join ? "join" : "team invite"} link.` : "Trust no one."}
       </p>
-      <Flash searchParams={sp} />
+      <Flash />
       <form action={loginAction} className="card space-y-4">
         {invite.join && <input type="hidden" name="join" value={invite.join} />}
         {invite.team && <input type="hidden" name="team" value={invite.team} />}

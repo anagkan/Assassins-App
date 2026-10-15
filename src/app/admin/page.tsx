@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { desc } from "drizzle-orm";
 import type { ReactNode } from "react";
-import { Flash, PageTitle, StatusPill, fmtDate, fmtRelative } from "@/components/ui";
+import { Flash } from "@/components/Flash";
+import { PageTitle, StatusPill, fmtDate, fmtRelative } from "@/components/ui";
 import { ConfirmButton } from "@/components/confirm";
 import { getDb, type DB } from "@/db";
 import { games, type Game } from "@/db/schema";
@@ -124,8 +125,7 @@ function CurrentGame({ db, game, today }: { db: DB; game: Game; today: number })
 
 export const metadata: Metadata = { title: "Games" };
 
-export default async function AdminHome({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
-  const sp = await searchParams;
+export default async function AdminHome() {
   const db = getDb();
   const all = db.select().from(games).orderBy(desc(games.id)).all();
   // Running games first, then any open for registration.
@@ -136,7 +136,7 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
     <>
       <PageTitle sub="Run a new game each semester. Past games stay archived.">Admin</PageTitle>
       <AdminNav current="/admin" />
-      <Flash searchParams={sp} />
+      <Flash />
 
       {current.length > 0 && (
         <div className="mb-6 space-y-3">

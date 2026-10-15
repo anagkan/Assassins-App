@@ -18,7 +18,7 @@ export default async function TeamsAdmin({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ ok?: string; error?: string; q?: string; show?: string; view?: string }>;
+  searchParams: Promise<{ q?: string; show?: string; view?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
@@ -127,7 +127,7 @@ export default async function TeamsAdmin({
 
   return (
     <>
-      <GameHeader id={id} current={base} sp={sp} />
+      <GameHeader id={id} current={base} />
 
       <form method="get" action={base} className="card mb-4 flex flex-wrap items-end gap-2 py-3">
         <div className="min-w-48 flex-1">

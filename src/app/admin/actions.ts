@@ -7,7 +7,7 @@ import { getDb } from "@/db";
 import { games, participants, users } from "@/db/schema";
 import * as A from "@/lib/announcements";
 import { createUser, deleteAccount, resetPassword, setRegistrationCode, updateAccount } from "@/lib/auth";
-import { act, int, optInt, str } from "@/lib/flash";
+import { act, flashRedirect, int, optInt, str } from "@/lib/flash";
 import * as G from "@/lib/game";
 import { requireAdmin } from "@/lib/session";
 import type { PasswordResult } from "./users/PasswordForm";
@@ -35,10 +35,10 @@ export async function createGameAction(fd: FormData) {
   try {
     id = G.createGame(getDb(), admin.id, str(fd, "name"), optInt(fd, "copyFrom") ?? undefined).id;
   } catch (e) {
-    if (e instanceof G.GameError) redirect("/admin?error=" + encodeURIComponent(e.message));
+    if (e instanceof G.GameError) await flashRedirect("/admin", "error", e.message);
     throw e;
   }
-  redirect(gamePath(id) + "?ok=" + encodeURIComponent("Game created. Review the settings, then open registration."));
+  await flashRedirect(gamePath(id), "ok", "Game created. Review the settings, then open registration.");
 }
 
 export async function deleteGameAction(fd: FormData) {
@@ -314,12 +314,13 @@ export async function deleteUserAction(fd: FormData) {
     if (str(fd, "confirmName").trim() !== user.username) throw new G.GameError(`Type the username ("${user.username}") to confirm.`);
     outcome = await deleteAccount(db, admin.id, userId);
   } catch (e) {
-    if (e instanceof G.GameError) redirect(`/admin/users/${userId}?error=` + encodeURIComponent(e.message));
+    if (e instanceof G.GameError) await flashRedirect(`/admin/users/${userId}`, "error", e.message);
     throw e;
   }
-  redirect(
-    "/admin/users?ok=" +
-      encodeURIComponent(outcome === "deleted" ? "Account deleted." : "Account deleted. They played in past games, so they now show there as \"Deleted player\"."),
+  await flashRedirect(
+    "/admin/users",
+    "ok",
+    outcome === "deleted" ? "Account deleted." : "Account deleted. They played in past games, so they now show there as \"Deleted player\".",
   );
 }
 

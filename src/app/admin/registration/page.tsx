@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ShareCode } from "@/components/ShareCode";
-import { Flash, PageTitle } from "@/components/ui";
+import { Flash } from "@/components/Flash";
+import { PageTitle } from "@/components/ui";
 import { getDb } from "@/db";
 import { getRegistrationCode } from "@/lib/auth";
 import { AdminNav } from "../AdminNav";
@@ -8,14 +9,13 @@ import { registrationAction } from "../actions";
 
 export const metadata: Metadata = { title: "Registration" };
 
-export default async function RegistrationAdmin({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
-  const sp = await searchParams;
+export default async function RegistrationAdmin() {
   const code = getRegistrationCode(getDb());
   return (
     <>
       <PageTitle sub="Who can create an account. Joining a game uses that game's own join code.">Registration</PageTitle>
       <AdminNav current="/admin/registration" />
-      <Flash searchParams={sp} />
+      <Flash />
       <div className="grid gap-4 md:grid-cols-2">
         <div className="card space-y-3">
           <div className="label">Registration code</div>

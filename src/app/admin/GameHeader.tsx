@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Flash, StatusPill, TabNav } from "@/components/ui";
+import { Flash } from "@/components/Flash";
+import { StatusPill, TabNav } from "@/components/ui";
 import { getDb } from "@/db";
 import { GameError, getGame } from "@/lib/game";
 import { pendingReports, unseenConfirmedReports } from "@/lib/queries";
@@ -22,7 +23,7 @@ export function gameMetadata(tab: string) {
   });
 }
 
-export function GameHeader({ id, current, sp }: { id: string; current: string; sp: { ok?: string; error?: string } }) {
+export function GameHeader({ id, current }: { id: string; current: string }) {
   const game = loadGame(id);
   const db = getDb();
   // Victim-confirmed kills count too, until an admin marks them seen.
@@ -46,7 +47,7 @@ export function GameHeader({ id, current, sp }: { id: string; current: string; s
           { href: `${base}/announcements`, label: "Announcements" },
         ]}
       />
-      <Flash searchParams={sp} />
+      <Flash />
     </>
   );
 }

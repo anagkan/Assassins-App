@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ConfirmButton } from "@/components/confirm";
 import { ShareCode } from "@/components/ShareCode";
-import { Avatar, Flash, PageTitle, StatusPill, fmtDate, fmtDuration, fmtRelative } from "@/components/ui";
+import { Flash } from "@/components/Flash";
+import { Avatar, PageTitle, StatusPill, fmtDate, fmtDuration, fmtRelative } from "@/components/ui";
 import { getDb } from "@/db";
 import type { Announcement, Game } from "@/db/schema";
 import { getCurrentGame } from "@/lib/game";
@@ -22,7 +23,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type SP = Promise<{ ok?: string; error?: string; join?: string; team?: string }>;
+type SP = Promise<{ join?: string; team?: string }>;
 
 export default async function Dashboard({ searchParams }: { searchParams: SP }) {
   const user = await requireUser();
@@ -34,7 +35,7 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
   if (!game) {
     return (
       <>
-        <Flash searchParams={sp} />
+        <Flash />
         <PageTitle sub="Check back when the officers announce the next round.">No game right now</PageTitle>
         {user.isAdmin && (
           <Link href="/admin" className="btn btn-primary">Set up a game</Link>
@@ -49,7 +50,7 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
 
   return (
     <>
-      <Flash searchParams={sp} />
+      <Flash />
       <PageTitle
         sub={
           <>

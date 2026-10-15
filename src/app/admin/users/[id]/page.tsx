@@ -3,7 +3,8 @@ import { desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TypedConfirm } from "@/components/confirm";
-import { Flash, PageTitle, StatusPill, fmtDate } from "@/components/ui";
+import { Flash } from "@/components/Flash";
+import { PageTitle, StatusPill, fmtDate } from "@/components/ui";
 import { getDb } from "@/db";
 import { games, participants, users } from "@/db/schema";
 import { requireAdmin } from "@/lib/session";
@@ -12,15 +13,8 @@ import { deleteUserAction, updateUserAction } from "../../actions";
 
 export const metadata: Metadata = { title: "Edit user" };
 
-export default async function UserAdmin({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ ok?: string; error?: string }>;
-}) {
+export default async function UserAdmin({ params }: { params: Promise<{ id: string }> }) {
   const me = await requireAdmin();
-  const sp = await searchParams;
   const db = getDb();
   const user = db.select().from(users).where(eq(users.id, Number((await params).id))).get();
   if (!user) notFound();
@@ -40,7 +34,7 @@ export default async function UserAdmin({
     <>
       <PageTitle sub={<>@{user.username} · joined {fmtDate(user.createdAt)}{user.isAdmin && " · admin"}</>}>{user.displayName}</PageTitle>
       <AdminNav current="/admin/users" />
-      <Flash searchParams={sp} />
+      <Flash />
       <Link href="/admin/users" className="mb-4 inline-block text-sm text-ink-dim hover:text-ink">← All users</Link>
       <div className="grid gap-4 md:grid-cols-2">
         <form action={updateUserAction} className="card space-y-4">

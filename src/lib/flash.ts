@@ -1,9 +1,26 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { FLASH_COOKIE } from "./flashCookie";
 import { GameError } from "./game";
 
 /**
- * Run a mutation and redirect back to `path` with a flash message. GameErrors become
+ * Redirect to `path` with a message for the next page. The message rides in a short-lived cookie,
+ * not the URL, so it doesn't come back on refresh, end up in shared links, or sit in history.
+ */
+export async function flashRedirect(path: string, kind: "ok" | "error", msg: string): Promise<never> {
+  (await cookies()).set(FLASH_COOKIE, JSON.stringify({ kind, msg, id: randomUUID() }), {
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production" && process.env.INSECURE_COOKIES !== "1",
+    path: "/",
+    maxAge: 60,
+  });
+  redirect(path);
+}
+
+/**
+ * Run a mutation and redirect back to `path` with a flash message (see `flashRedirect`). GameErrors become
  * user-visible error messages; anything else is logged and shown generically.
  */
 export async function act(path: string, fn: () => unknown | Promise<unknown>, okMessage?: string | ((r: unknown) => string)) {
@@ -22,8 +39,8 @@ export async function act(path: string, fn: () => unknown | Promise<unknown>, ok
       msg = "Something went wrong. Please try again.";
     }
   }
-  const sep = path.includes("?") ? "&" : "?";
-  redirect(msg ? `${path}${sep}${kind}=${encodeURIComponent(msg)}` : path);
+  if (msg) await flashRedirect(path, kind, msg);
+  redirect(path);
 }
 
 function isRedirect(e: unknown) {

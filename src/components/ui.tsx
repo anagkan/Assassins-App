@@ -2,24 +2,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { TabSelect } from "./TabSelect";
 
-export function Flash({ searchParams }: { searchParams: { ok?: string; error?: string } }) {
-  if (searchParams.error) {
-    return (
-      <div role="alert" className="mb-4 rounded-sm bg-stop px-4 py-3 text-sm text-stop-ink">
-        {searchParams.error}
-      </div>
-    );
-  }
-  if (searchParams.ok) {
-    return (
-      <div role="status" className="mb-4 rounded-sm bg-ok px-4 py-3 text-sm text-(--ok-chip-ink)">
-        {searchParams.ok}
-      </div>
-    );
-  }
-  return null;
-}
-
 export function PageTitle({ children, sub }: { children: ReactNode; sub?: ReactNode }) {
   return (
     <div className="mb-5">

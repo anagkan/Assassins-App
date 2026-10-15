@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import { checkRegistrationCode, createUser, setPassword, verifyLogin } from "@/lib/auth";
-import { act, int, str } from "@/lib/flash";
+import { act, flashRedirect, int, str } from "@/lib/flash";
 import * as G from "@/lib/game";
 import { inviteQuery, readInvite } from "@/lib/invite";
 import { clear, hit, isLimited, rateLimit } from "@/lib/rateLimit";
@@ -15,23 +15,22 @@ export async function loginAction(fd: FormData) {
   const username = str(fd, "username");
   const invite = readInvite(fd);
   const back = `/login${inviteQuery(invite)}`;
-  const sep = back.includes("?") ? "&" : "?";
   const ip = await clientIp();
   // Only failed attempts count, so switching between accounts never locks anyone out.
   const ipKey = `login:ip:${ip}`;
   const userKey = `login:user:${username.toLowerCase()}`;
   if (isLimited(ipKey, 20) || isLimited(userKey, 8)) {
-    redirect(`${back}${sep}error=${encodeURIComponent("Too many failed attempts. Try again in a few minutes.")}`);
+    return flashRedirect(back, "error", "Too many failed attempts. Try again in a few minutes.");
   }
   const user = await verifyLogin(getDb(), username, str(fd, "password"));
   if (!user) {
     hit(ipKey, 15 * 60_000);
     hit(userKey, 15 * 60_000);
-    redirect(`${back}${sep}error=${encodeURIComponent("Wrong username or password.")}`);
+    return flashRedirect(back, "error", "Wrong username or password.");
   }
   clear(userKey);
   await startSession(user.id);
-  if (user.mustChangePassword) redirect("/account?error=" + encodeURIComponent("Please choose a new password."));
+  if (user.mustChangePassword) await flashRedirect("/account", "error", "Please choose a new password.");
   redirect(user.isAdmin ? "/admin" : `/${inviteQuery(invite)}`);
 }
 
@@ -39,7 +38,7 @@ export async function registerAction(fd: FormData) {
   const ip = await clientIp();
   const q = inviteQuery(readInvite(fd));
   if (!rateLimit(`register:${ip}`, 10, 60 * 60_000)) {
-    redirect(`/register${q}${q ? "&" : "?"}error=${encodeURIComponent("Too many sign-ups from your network. Try later.")}`);
+    await flashRedirect(`/register${q}`, "error", "Too many sign-ups from your network. Try later.");
   }
   const db = getDb();
   await act(`/register${q}`, async () => {
@@ -55,7 +54,7 @@ export async function registerAction(fd: FormData) {
     });
     await startSession(user.id);
     const next = q ? "Welcome! Your account is ready." : "Welcome! Your account is ready. Enter the game's join code to join.";
-    redirect(`/${q}${q ? "&" : "?"}ok=${encodeURIComponent(next)}`);
+    await flashRedirect(`/${q}`, "ok", next);
   });
 }
 

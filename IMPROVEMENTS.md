@@ -64,7 +64,7 @@ Every one of them involves the victim. This app doesn't: victims never see a rep
 
 - [x] <a id="p10"></a>**P10. Mobile navigation is cramped.** *Shipped: phones get a bottom tab bar; History, Admin and Log out moved to the Me page (Admin also stays in the header).* Seven header links in a sideways-scrolling strip, and History is hidden on phones. A bottom tab bar (Home / Feed / Standings / Rules / Me) suits phone players better.
 
-- [ ] <a id="p11"></a>**P11. Flash messages live in the URL** (`?ok=…`, `src/lib/flash.ts`). They reappear on refresh, travel with shared links, and stay in history. See [A1](#a1) for the worst case.
+- [x] <a id="p11"></a>**P11. Flash messages live in the URL** (`?ok=…`, `src/lib/flash.ts`). *Shipped: messages ride in a 60-second `flash` cookie that the page clears once it has shown the message; URLs stay clean.* They reappear on refresh, travel with shared links, and stay in history. See [A1](#a1) for the worst case.
 
 ### Nice to have
 

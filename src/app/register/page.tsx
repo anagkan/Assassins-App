@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SubmitButton } from "@/components/SubmitButton";
-import { Flash } from "@/components/ui";
+import { Flash } from "@/components/Flash";
 import { getDb } from "@/db";
 import { getRegistrationCode } from "@/lib/auth";
 import { inviteQuery, readInvite } from "@/lib/invite";
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Create an account" };
 
-export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; code?: string; join?: string; team?: string }> }) {
+export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ code?: string; join?: string; team?: string }> }) {
   const sp = await searchParams;
   const invite = readInvite(sp);
   if (await getCurrentUser()) redirect(`/${inviteQuery(invite)}`);
@@ -28,7 +28,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
             ? "Create your account and we'll take you straight to the game with your code filled in."
             : "Create your account, then join this semester's game from your dashboard."}
       </p>
-      <Flash searchParams={sp} />
+      <Flash />
       {open && (
         <form action={registerAction} className="card space-y-4">
           {invite.join && <input type="hidden" name="join" value={invite.join} />}

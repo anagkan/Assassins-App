@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { asc } from "drizzle-orm";
 import Link from "next/link";
-import { Flash, PageTitle, fmtDate } from "@/components/ui";
+import { Flash } from "@/components/Flash";
+import { PageTitle, fmtDate } from "@/components/ui";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import { requireAdmin } from "@/lib/session";
@@ -11,7 +12,7 @@ import { PasswordForm } from "./PasswordForm";
 
 export const metadata: Metadata = { title: "Users & admins" };
 
-export default async function UsersAdmin({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; q?: string }> }) {
+export default async function UsersAdmin({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const me = await requireAdmin();
   const sp = await searchParams;
   const q = (sp.q ?? "").toLowerCase();
@@ -22,7 +23,7 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
     <>
       <PageTitle sub="Fix account details, reset forgotten passwords and hand admin rights to next year's officers.">Users</PageTitle>
       <AdminNav current="/admin/users" />
-      <Flash searchParams={sp} />
+      <Flash />
       <div className="mb-4 grid gap-3 md:grid-cols-2">
         <form className="card flex gap-2" action="/admin/users">
           <input className="input" name="q" defaultValue={sp.q} placeholder="Search name, username, NetID or PUID" />

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Avatar, Flash, PageTitle } from "@/components/ui";
+import { Flash } from "@/components/Flash";
+import { Avatar, PageTitle } from "@/components/ui";
 import { getDb } from "@/db";
 import { runningGameFor } from "@/lib/game";
 import { requireUser } from "@/lib/session";
@@ -10,9 +11,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Profile" };
 
-export default async function AccountPage({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
+export default async function AccountPage() {
   const user = await requireUser();
-  const sp = await searchParams;
   // Accounts created before sign-up collected names only have a display name.
   const [first, ...rest] = user.displayName.split(" ");
   const firstName = user.firstName ?? first;
@@ -21,7 +21,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   return (
     <>
       <PageTitle sub={`Signed in as @${user.username}`}>Profile</PageTitle>
-      <Flash searchParams={sp} />
+      <Flash />
       <div className="grid gap-4 md:grid-cols-2">
         <form action={updateProfileAction} className="card space-y-4">
           <h2 className="h-display text-xl">Name</h2>

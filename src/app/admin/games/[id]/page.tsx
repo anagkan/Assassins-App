@@ -12,9 +12,8 @@ import { GameHeader, gameMetadata, loadGame } from "../../GameHeader";
 
 export const generateMetadata = gameMetadata("Overview");
 
-export default async function GameOverview({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: string; error?: string }> }) {
+export default async function GameOverview({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const sp = await searchParams;
   const game = loadGame(id);
   const db = getDb();
   const s = gameStats(db, game.id);
@@ -27,7 +26,7 @@ export default async function GameOverview({ params, searchParams }: { params: P
 
   return (
     <>
-      <GameHeader id={id} current={`/admin/games/${game.id}`} sp={sp} />
+      <GameHeader id={id} current={`/admin/games/${game.id}`} />
 
       <div className="grid gap-4 md:grid-cols-3">
         <div className="card space-y-3 md:col-span-1">
