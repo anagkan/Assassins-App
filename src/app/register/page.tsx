@@ -35,8 +35,8 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           {invite.team && <input type="hidden" name="team" value={invite.team} />}
           <div>
             <label className="label" htmlFor="registrationCode">Registration code</label>
-            <input className="input uppercase" id="registrationCode" name="registrationCode" defaultValue={sp.code} required autoCapitalize="characters" />
-            <p className="mt-1 text-xs text-ink-dim">Get this from the club officers.</p>
+            <input className="input uppercase" id="registrationCode" name="registrationCode" defaultValue={sp.code} required autoCapitalize="characters" aria-describedby="registrationCode-help" />
+            <p id="registrationCode-help" className="mt-1 text-xs text-ink-dim">Get this from the club officers.</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -50,20 +50,23 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           </div>
           <div>
             <label className="label" htmlFor="netId">NetID</label>
-            <input className="input" id="netId" name="netId" placeholder="ab1234" autoCapitalize="none" required pattern="[A-Za-z]{2}[0-9]{4}" maxLength={6} title="2 letters followed by 4 numbers" />
+            <input className="input" id="netId" name="netId" placeholder="ab1234" autoCapitalize="none" required pattern="[A-Za-z]{2}[0-9]{4}" maxLength={6} title="2 letters followed by 4 numbers" aria-describedby="netId-help" />
+            <p id="netId-help" className="mt-1 text-xs text-ink-dim">2 letters followed by 4 numbers, e.g. ab1234.</p>
           </div>
           <div>
             <label className="label" htmlFor="puid">PUID</label>
-            <input className="input" id="puid" name="puid" inputMode="numeric" required pattern="[0-9]{9}" maxLength={9} title="9 digits" />
-            <p className="mt-1 text-xs text-ink-dim">Only visible to admins.</p>
+            <input className="input" id="puid" name="puid" inputMode="numeric" required pattern="[0-9]{9}" maxLength={9} title="9 digits" aria-describedby="puid-help" />
+            <p id="puid-help" className="mt-1 text-xs text-ink-dim">9 digits. Only visible to admins.</p>
           </div>
           <div>
             <label className="label" htmlFor="username">Username</label>
-            <input className="input" id="username" name="username" autoComplete="username" autoCapitalize="none" required pattern="[A-Za-z0-9_.\-]{3,32}" />
+            <input className="input" id="username" name="username" autoComplete="username" autoCapitalize="none" required pattern="[A-Za-z0-9_.\-]{3,32}" maxLength={32} title="3–32 letters, numbers, dots, dashes or underscores" aria-describedby="username-help" />
+            <p id="username-help" className="mt-1 text-xs text-ink-dim">3–32 characters: letters, numbers, dots (.), dashes (-) or underscores (_). No spaces.</p>
           </div>
           <div>
             <label className="label" htmlFor="password">Password</label>
-            <input className="input" id="password" name="password" type="password" autoComplete="new-password" minLength={8} required />
+            <input className="input" id="password" name="password" type="password" autoComplete="new-password" minLength={8} maxLength={200} required aria-describedby="password-help" />
+            <p id="password-help" className="mt-1 text-xs text-ink-dim">At least 8 characters.</p>
           </div>
           <div>
             <label className="label" htmlFor="confirm">Confirm password</label>

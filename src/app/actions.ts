@@ -11,22 +11,24 @@ import { inviteQuery, readInvite } from "@/lib/invite";
 import { clear, hit, isLimited, rateLimit } from "@/lib/rateLimit";
 import { clientIp, endSession, requireUser, startSession } from "@/lib/session";
 
-export async function loginAction(fd: FormData) {
+/** A failed login, returned to the form so it can keep the username filled in. */
+export type LoginResult = { error: string; username: string } | null;
+
+export async function loginAction(_prev: LoginResult, fd: FormData): Promise<LoginResult> {
   const username = str(fd, "username");
   const invite = readInvite(fd);
-  const back = `/login${inviteQuery(invite)}`;
   const ip = await clientIp();
   // Only failed attempts count, so switching between accounts never locks anyone out.
   const ipKey = `login:ip:${ip}`;
   const userKey = `login:user:${username.toLowerCase()}`;
   if (isLimited(ipKey, 20) || isLimited(userKey, 8)) {
-    return flashRedirect(back, "error", "Too many failed attempts. Try again in a few minutes.");
+    return { error: "Too many failed attempts. Try again in a few minutes.", username };
   }
   const user = await verifyLogin(getDb(), username, str(fd, "password"));
   if (!user) {
     hit(ipKey, 15 * 60_000);
     hit(userKey, 15 * 60_000);
-    return flashRedirect(back, "error", "Wrong username or password.");
+    return { error: "Wrong username or password.", username };
   }
   clear(userKey);
   await startSession(user.id);
@@ -88,7 +90,19 @@ export async function leaveGameAction(fd: FormData) {
 
 export async function createTeamAction(fd: FormData) {
   const user = await requireUser();
-  await act("/", () => G.createTeam(getDb(), int(fd, "gameId"), user.id, str(fd, "name").trim() || user.displayName), "Team created. Share the invite code with your teammates.");
+  await act(
+    "/",
+    () => {
+      const db = getDb();
+      const gameId = int(fd, "gameId");
+      G.createTeam(db, gameId, user.id, str(fd, "name").trim() || user.displayName);
+      // A solo game's "team" is just the player, so there's no one to invite.
+      return G.getGame(db, gameId).maxTeamSize === 1
+        ? "You're locked in. Your target will show up here when the game starts."
+        : "Team created. Share the invite code with your teammates.";
+    },
+    (m) => m as string,
+  );
 }
 
 export async function joinTeamAction(fd: FormData) {
