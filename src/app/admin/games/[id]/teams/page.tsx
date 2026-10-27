@@ -178,7 +178,7 @@ export default async function TeamsAdmin({
                 <input type="hidden" name="op" value="autofill" />
                 <div>
                   <label className="label" htmlFor="size">Auto-fill into teams of</label>
-                  <input className="input w-24" id="size" name="size" type="number" min={1} max={game.maxTeamSize ?? undefined} defaultValue={game.maxTeamSize ?? 2} />
+                  <input className="input w-24" id="size" name="size" type="number" min={game.minTeamSize} max={game.maxTeamSize ?? undefined} defaultValue={game.maxTeamSize ?? Math.max(2, game.minTeamSize)} />
                 </div>
                 <button className="btn btn-primary">Auto-fill randomly</button>
                 <p className="w-full text-xs text-ink-dim">Tops up existing teams that are under this size first, then forms new random teams.</p>

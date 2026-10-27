@@ -133,6 +133,35 @@ describe("team mechanics", () => {
     assertRingValid(db, gameId);
   });
 
+  it("auto-fill spreads a short last group onto teams with room instead of leaving a team under the minimum", () => {
+    const db = freshDb();
+    const { gameId } = setupGame(db, [], { minTeamSize: 2, maxTeamSize: 3 });
+    const code = G.getGame(db, gameId).joinCode;
+    for (const u of makeUsers(db, 5)) G.joinGame(db, u, gameId, code);
+    expect(G.autoFillTeams(db, 0, gameId, 2)).toBe(5);
+    const counts = new Map<number, number>();
+    for (const p of db.select().from(participants).where(eq(participants.gameId, gameId)).all()) {
+      counts.set(p.teamId!, (counts.get(p.teamId!) ?? 0) + 1);
+    }
+    expect([...counts.values()].sort()).toEqual([2, 3]);
+    expect(G.startChecklist(db, gameId).filter((c) => c.blocking && !c.ok)).toEqual([]);
+  });
+
+  it("auto-fill leaves a short group when no team has room for it", () => {
+    const db = freshDb();
+    const { gameId } = setupGame(db, [2], { minTeamSize: 2, maxTeamSize: 2 });
+    const code = G.getGame(db, gameId).joinCode;
+    for (const u of makeUsers(db, 3)) G.joinGame(db, u, gameId, code);
+    G.autoFillTeams(db, 0, gameId, 2);
+    expect(G.startChecklist(db, gameId).some((c) => /has 1 player\(s\); the minimum is 2/.test(c.text))).toBe(true);
+  });
+
+  it("auto-fill size can't be below the min team size", () => {
+    const db = freshDb();
+    const { gameId } = setupGame(db, [], { minTeamSize: 3 });
+    expect(() => G.autoFillTeams(db, 0, gameId, 2)).toThrow(/below the min team size/);
+  });
+
   it("admin accounts can't join a game", () => {
     const db = freshDb();
     const { gameId } = setupGame(db, [1, 1]);

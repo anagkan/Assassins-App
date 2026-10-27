@@ -518,6 +518,7 @@ export function autoFillTeams(db: DB, actorId: number, gameId: number, size: num
     if (game.maxTeamSize != null && size > game.maxTeamSize) {
       throw new GameError(`Size can't exceed the max team size (${game.maxTeamSize}).`);
     }
+    if (size < game.minTeamSize) throw new GameError(`Size can't be below the min team size (${game.minTeamSize}).`);
     const pool = shuffle(
       tx.select().from(participants).where(and(eq(participants.gameId, gameId), isNull(participants.teamId))).all(),
     );
@@ -533,7 +534,35 @@ export function autoFillTeams(db: DB, actorId: number, gameId: number, size: num
       }
     }
     const groups = groupIntoTeams(pool, size);
-    let n = tx.select().from(teams).where(eq(teams.gameId, gameId)).all().length;
+    // A short last group would be a team under the minimum. If the other teams have room for all of
+    // its players under the max, spread them out, smallest team first; otherwise the checklist flags it.
+    const short = groups.at(-1);
+    if (short && short.length < game.minTeamSize) {
+      const max = game.maxTeamSize ?? Infinity;
+      const homes = [
+        ...groups.slice(0, -1).map((g) => ({ size: g.length, add: (p: Participant) => g.push(p) })),
+        ...tx
+          .select()
+          .from(teams)
+          .where(eq(teams.gameId, gameId))
+          .all()
+          .map((t) => ({ id: t.id, size: teamMembers(tx, t.id).length }))
+          .filter((t) => t.size > 0)
+          .map((t) => ({
+            size: t.size,
+            add: (p: Participant) => tx.update(participants).set({ teamId: t.id }).where(eq(participants.id, p.id)).run(),
+          })),
+      ];
+      if (homes.reduce((room, h) => room + Math.max(0, max - h.size), 0) >= short.length) {
+        groups.pop();
+        for (const p of short) {
+          const home = homes.filter((h) => h.size < max).sort((a, b) => a.size - b.size)[0];
+          home.add(p);
+          home.size++;
+        }
+      }
+    }
+    let n =tx.select().from(teams).where(eq(teams.gameId, gameId)).all().length;
     for (const group of groups) {
       const team = newTeam(tx, gameId, size === 1 ? "Solo" : `Team ${++n}`);
       if (size === 1) {
