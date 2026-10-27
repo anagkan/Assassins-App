@@ -96,10 +96,12 @@ Edit `src/db/schema.ts`, run `npm run db:generate`, and commit the new file in `
 | `src/lib/auth.ts`, `session.ts` | Passwords (bcrypt), DB-backed sessions, first-admin setup |
 | `src/app/` | Player pages and `actions.ts` (player server actions) |
 | `src/app/admin/` | Admin pages and `actions.ts` (admin server actions) |
+| `src/app/api/`, `src/lib/api.ts` | Token-protected JSON API for announcements and safe zones ([docs/API.md](docs/API.md)) |
 | `tests/` | Vitest tests for the ring and the game engine |
 | `scripts/` | Seed, create-admin, backup |
 
 ### Security notes
 - Players can only ever load their own team's target. The full ring is only rendered on admin pages.
 - Every admin action re-checks `isAdmin` on the server. Server actions also get Next.js's built-in origin (CSRF) check.
+- The JSON API (`/api/...`) is off unless `AGENT_API_TOKEN` (32+ characters) is set, and then needs it as a bearer token. It can only touch announcements and safe zones.
 - Login and sign-up are rate-limited. Passwords are bcrypt-hashed, and sessions are random tokens stored hashed.
