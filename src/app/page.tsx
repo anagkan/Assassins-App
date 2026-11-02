@@ -46,7 +46,8 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
 
   const data = dashboard(db, game, user.id);
   const stats = gameStats(db, game.id);
-  const notices = activeAnnouncements(db, game.id);
+  // Immunity notices mean nothing once the game is over.
+  const notices = activeAnnouncements(db, game.id).filter((a) => game.status !== "finished" || a.kind !== "immunity");
 
   return (
     <>
