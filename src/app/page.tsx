@@ -160,15 +160,18 @@ function JoinPanel({ game, invite }: { game: Game; invite: Invite }) {
 function teamLimitText(game: Game) {
   if (game.maxTeamSize === 1) return "This is a solo game: everyone plays on their own.";
   const max = game.maxTeamSize == null ? "any number of" : `up to ${game.maxTeamSize}`;
-  return `Teams can have ${max} players${game.minTeamSize > 1 ? ` (minimum ${game.minTeamSize})` : ""}.`;
+  const sizes = `Teams can have ${max} players${game.minTeamSize > 1 ? ` (minimum ${game.minTeamSize})` : ""}.`;
+  return game.randomTeams ? `Teams are drawn at random by the admins. ${sizes}` : sizes;
 }
 
 function RegistrationPanel({ game, teamId, invite }: { game: Game; teamId: number | null; invite: Invite }) {
   const db = getDb();
   const team = teamId != null ? teamWithMembers(db, teamId) : null;
   const solo = game.maxTeamSize === 1;
+  // Random teams: the admins place everyone, so players can only rename the team they land on.
+  const random = !solo && game.randomTeams;
   // A team link for a different team than the one you're on: offer to switch.
-  const switchTo = !solo && team && invite.team && invite.team !== team.team.inviteCode ? invite.team : undefined;
+  const switchTo = !solo && !random && team && invite.team && invite.team !== team.team.inviteCode ? invite.team : undefined;
   // Leaving (or switching off) a team you're alone on deletes it.
   const lastOne = team?.members.length === 1;
   return (
@@ -186,7 +189,7 @@ function RegistrationPanel({ game, teamId, invite }: { game: Game; teamId: numbe
             <div className="label">Your team</div>
             <div className="h-display text-2xl">{team.team.name}</div>
           </div>
-          {!solo && (
+          {!solo && !random && (
             <div>
               <div className="label">Invite code. Share it with your teammates.</div>
               <div className="flex flex-wrap items-center gap-3">
@@ -197,25 +200,30 @@ function RegistrationPanel({ game, teamId, invite }: { game: Game; teamId: numbe
           )}
           <MemberList members={team.members} />
           {!solo && (
-            <form action={renameMyTeamAction} className="flex gap-2">
-              <input type="hidden" name="gameId" value={game.id} />
-              <input className="input" name="name" placeholder="Rename team" maxLength={40} required />
-              <button className="btn">Rename</button>
+            <form action={renameMyTeamAction} className="space-y-2">
+              {random && <div className="label">You were drawn onto this team. Pick a name for it before the game starts.</div>}
+              <div className="flex gap-2">
+                <input type="hidden" name="gameId" value={game.id} />
+                <input className="input" name="name" placeholder={random ? "Team name" : "Rename team"} maxLength={40} required />
+                <button className="btn">{random ? "Set name" : "Rename"}</button>
+              </div>
             </form>
           )}
-          <form action={leaveTeamAction}>
-            <input type="hidden" name="gameId" value={game.id} />
-            <ConfirmButton
-              className="btn btn-danger btn-sm"
-              message={
-                lastOne
-                  ? `Leave ${team.team.name}? You're its only member, so the team will be deleted.`
-                  : `Leave ${team.team.name}? You'll need its invite code to rejoin.`
-              }
-            >
-              Leave team
-            </ConfirmButton>
-          </form>
+          {!random && (
+            <form action={leaveTeamAction}>
+              <input type="hidden" name="gameId" value={game.id} />
+              <ConfirmButton
+                className="btn btn-danger btn-sm"
+                message={
+                  lastOne
+                    ? `Leave ${team.team.name}? You're its only member, so the team will be deleted.`
+                    : `Leave ${team.team.name}? You'll need its invite code to rejoin.`
+                }
+              >
+                Leave team
+              </ConfirmButton>
+            </form>
+          )}
           {switchTo && (
             <form action={joinTeamAction} className="space-y-2 border-t border-line pt-4">
               <p className="text-sm">
@@ -231,6 +239,13 @@ function RegistrationPanel({ game, teamId, invite }: { game: Game; teamId: numbe
               </ConfirmButton>
             </form>
           )}
+        </div>
+      ) : random ? (
+        <div className="card space-y-2">
+          <h2 className="h-display text-xl">Waiting for your team</h2>
+          <p className="text-sm text-ink-dim">
+            Teams in this game are drawn at random, so you can&apos;t create or join one yourself. The admins will place you on a team before the game starts, and you&apos;ll be able to name it then.
+          </p>
         </div>
       ) : (
         <div className="card space-y-5">

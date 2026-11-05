@@ -22,7 +22,7 @@ export default async function GameOverview({ params }: { params: Promise<{ id: s
   const blocked = checklist.some((c) => c.blocking && !c.ok);
   const liveTeams = db.select().from(teams).where(eq(teams.gameId, game.id)).all().filter((t) => t.status === "alive");
   const teamsLocked = game.status === "active" || game.status === "paused" || game.status === "finished";
-  const mode = game.maxTeamSize === 1 ? "solo" : "teams";
+  const mode = game.maxTeamSize === 1 ? "solo" : game.randomTeams ? "random" : "teams";
 
   return (
     <>
@@ -35,7 +35,7 @@ export default async function GameOverview({ params }: { params: Promise<{ id: s
             <dt className="text-ink-dim">Players</dt><dd>{s.alivePlayers}/{s.players} alive</dd>
             <dt className="text-ink-dim">Teams</dt><dd>{s.aliveTeams}/{s.teams} alive</dd>
             <dt className="text-ink-dim">Mode</dt>
-            <dd>{game.maxTeamSize === 1 ? "Solo" : `Teams (${game.minTeamSize}–${game.maxTeamSize ?? "∞"})`}</dd>
+            <dd>{game.maxTeamSize === 1 ? "Solo" : `${game.randomTeams ? "Random teams" : "Teams"} (${game.minTeamSize}–${game.maxTeamSize ?? "∞"})`}</dd>
           </dl>
           {problems.length > 0 && (
             <div className="rounded-sm bg-stop p-2 text-xs text-stop-ink">Ring problem: {problems.join(" ")}</div>
@@ -126,7 +126,13 @@ export default async function GameOverview({ params }: { params: Promise<{ id: s
               <label className="flex items-center gap-2">
                 <input type="radio" name="teamMode" value="teams" defaultChecked={mode === "teams"} /> Teams
               </label>
+              <label className="flex items-center gap-2">
+                <input type="radio" name="teamMode" value="random" defaultChecked={mode === "random"} /> Random teams
+              </label>
             </div>
+            <p className="text-xs text-ink-dim">
+              Random teams: players can&apos;t create, join or leave teams. Use auto-fill on Teams &amp; players to draw them; players can then rename the team they&apos;re on until the game starts.
+            </p>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="label" htmlFor="minTeamSize">Min team size</label>

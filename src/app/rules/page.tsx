@@ -15,7 +15,7 @@ export default async function RulesPage({ searchParams }: { searchParams: Promis
   const teamText =
     game.maxTeamSize === 1
       ? "Solo game: every player is on their own."
-      : `Team game: teams of ${game.minTeamSize > 1 ? `${game.minTeamSize}–` : "up to "}${game.maxTeamSize ?? "any size"}. Any member of your team can eliminate any member of your target team. A team is out when all its members are out, and the team that finished them off inherits their target.`;
+      : `Team game: teams of ${game.minTeamSize > 1 ? `${game.minTeamSize}–` : "up to "}${game.maxTeamSize ?? "any size"}${game.randomTeams ? ", drawn at random by the admins" : ""}. Any member of your team can eliminate any member of your target team. A team is out when all its members are out, and the team that finished them off inherits their target.`;
   return (
     <>
       <PageTitle sub={teamText}>Rules · {game.name}</PageTitle>

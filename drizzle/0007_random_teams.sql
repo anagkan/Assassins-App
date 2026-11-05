@@ -1,0 +1,1 @@
+ALTER TABLE `games` ADD `random_teams` integer DEFAULT false NOT NULL;

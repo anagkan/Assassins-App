@@ -63,6 +63,7 @@ export async function updateSettingsAction(fd: FormData) {
       if (fd.has("teamMode")) {
         settings.maxTeamSize = mode === "solo" ? 1 : optInt(fd, "maxTeamSize");
         settings.minTeamSize = mode === "solo" ? 1 : (optInt(fd, "minTeamSize") ?? 1);
+        settings.randomTeams = mode === "random";
       }
       G.updateGameSettings(getDb(), admin.id, id, settings);
     },

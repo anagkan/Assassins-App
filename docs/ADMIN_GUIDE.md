@@ -5,7 +5,7 @@ This is a checklist for club officers. You don't need to know how to code. You o
 ## 1. Set up the game (about 1 week before)
 1. Go to **Admin** and create a game (e.g. "Spring 2027"). Under "Copy rules & settings from", pick last semester's game so you keep its rules.
 2. On the game's **Overview**, set:
-   - **Solo or Teams.** For teams, set the min and max size. Leave max blank to allow any size.
+   - **Solo, Teams or Random teams.** For teams, set the min and max size. Leave max blank to allow any size. With **Random teams**, players can't create, join or leave teams: they wait unassigned until you **Auto-fill randomly**, then they can name the team they were put on until the game starts.
    - **Inactivity limit (days).** Teams with no kill in this many days can be purged. Leave it blank to turn this off.
    - Whether the feed shows **who** made each kill.
    - **Rules** and **Safe zones**. Players see these on the Rules page.

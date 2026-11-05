@@ -157,6 +157,7 @@ export interface GameSettings {
   name?: string;
   maxTeamSize?: number | null;
   minTeamSize?: number;
+  randomTeams?: boolean;
   rulesMarkdown?: string;
   safeZonesMarkdown?: string;
   inactivityDays?: number | null;
@@ -174,6 +175,7 @@ export function createGame(db: DB, actorId: number | null, name: string, copyFro
         createdAt: now(),
         maxTeamSize: src?.maxTeamSize ?? 1,
         minTeamSize: src?.minTeamSize ?? 1,
+        randomTeams: src?.randomTeams ?? false,
         // Save the templates so players see real rules even if nobody edits them.
         rulesMarkdown: src?.rulesMarkdown || DEFAULT_RULES,
         safeZonesMarkdown: src?.safeZonesMarkdown || DEFAULT_SAFE_ZONES,
@@ -202,6 +204,9 @@ export function updateGameSettings(db: DB, actorId: number | null, gameId: numbe
       }
       if (s.minTeamSize !== undefined && s.minTeamSize !== game.minTeamSize) {
         throw new GameError("Team sizes can't change after the game has started.");
+      }
+      if (s.randomTeams !== undefined && s.randomTeams !== game.randomTeams) {
+        throw new GameError("The team mode can't change after the game has started.");
       }
     }
     tx.update(games)
@@ -426,9 +431,16 @@ function registrationParticipant(c: Conn, gameId: number, userId: number) {
   return { game, p };
 }
 
+/** Like registrationParticipant, for a player picking their own team, which random-teams games don't allow. */
+function teamPickingParticipant(c: Conn, gameId: number, userId: number) {
+  const r = registrationParticipant(c, gameId, userId);
+  if (r.game.randomTeams) throw new GameError("Teams are drawn at random in this game, so the admins will place you on one.");
+  return r;
+}
+
 export function createTeam(db: DB, gameId: number, userId: number, name: string): Team {
   return db.transaction((tx) => {
-    const { p } = registrationParticipant(tx, gameId, userId);
+    const { p } = teamPickingParticipant(tx, gameId, userId);
     const team = newTeam(tx, gameId, name);
     tx.update(participants).set({ teamId: team.id }).where(eq(participants.id, p.id)).run();
     deleteTeamIfEmpty(tx, p.teamId);
@@ -439,7 +451,7 @@ export function createTeam(db: DB, gameId: number, userId: number, name: string)
 
 export function joinTeam(db: DB, gameId: number, userId: number, inviteCode: string): Team {
   return db.transaction((tx) => {
-    const { game, p } = registrationParticipant(tx, gameId, userId);
+    const { game, p } = teamPickingParticipant(tx, gameId, userId);
     const team = tx
       .select()
       .from(teams)
@@ -457,7 +469,7 @@ export function joinTeam(db: DB, gameId: number, userId: number, inviteCode: str
 
 export function leaveTeam(db: DB, gameId: number, userId: number) {
   db.transaction((tx) => {
-    const { p } = registrationParticipant(tx, gameId, userId);
+    const { p } = teamPickingParticipant(tx, gameId, userId);
     const teamName = p.teamId != null ? getTeam(tx, p.teamId).name : null;
     tx.update(participants).set({ teamId: null }).where(eq(participants.id, p.id)).run();
     deleteTeamIfEmpty(tx, p.teamId);

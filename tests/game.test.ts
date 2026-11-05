@@ -162,6 +162,25 @@ describe("team mechanics", () => {
     expect(() => G.autoFillTeams(db, 0, gameId, 2)).toThrow(/below the min team size/);
   });
 
+  it("random teams stop players picking teams but let them rename the one they're drawn onto", () => {
+    const db = freshDb();
+    const { gameId, userIds } = setupGame(db, [2], { minTeamSize: 2, maxTeamSize: 2 });
+    G.updateGameSettings(db, null, gameId, { randomTeams: true });
+    const [team] = aliveTeams(db, gameId);
+    const code = G.getGame(db, gameId).joinCode;
+    const late = makeUsers(db, 2);
+    for (const u of late) G.joinGame(db, u, gameId, code);
+    expect(() => G.createTeam(db, gameId, late[0], "Mine")).toThrow(/drawn at random/);
+    expect(() => G.joinTeam(db, gameId, late[0], team.inviteCode)).toThrow(/drawn at random/);
+    expect(() => G.leaveTeam(db, gameId, userIds[0])).toThrow(/drawn at random/);
+    expect(G.autoFillTeams(db, 0, gameId, 2)).toBe(2);
+    const drawn = G.getParticipantForUser(db, gameId, late[0])!.teamId!;
+    G.renameTeam(db, late[0], drawn, "Night Owls");
+    expect(db.select().from(teams).where(eq(teams.id, drawn)).get()!.name).toBe("Night Owls");
+    G.startGame(db, null, gameId);
+    expect(() => G.updateGameSettings(db, null, gameId, { randomTeams: false })).toThrow(/team mode/);
+  });
+
   it("admin accounts can't join a game", () => {
     const db = freshDb();
     const { gameId } = setupGame(db, [1, 1]);

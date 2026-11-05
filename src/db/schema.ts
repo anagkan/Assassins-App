@@ -41,6 +41,8 @@ export const games = sqliteTable("games", {
   signupsOpen: integer("signups_open", { mode: "boolean" }).notNull().default(true),
   maxTeamSize: integer("max_team_size"), // null = unlimited
   minTeamSize: integer("min_team_size").notNull().default(1),
+  // Admins draw the teams; players can't create, join or leave one, only rename the team they're put on.
+  randomTeams: integer("random_teams", { mode: "boolean" }).notNull().default(false),
   rulesMarkdown: text("rules_markdown").notNull().default(""),
   safeZonesMarkdown: text("safe_zones_markdown").notNull().default(""),
   inactivityDays: integer("inactivity_days"), // null = no inactivity deadline
