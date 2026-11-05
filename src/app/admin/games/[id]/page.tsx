@@ -149,6 +149,7 @@ export default async function GameOverview({ params }: { params: Promise<{ id: s
             <div>
               <label className="label" htmlFor="inactivityDays">Inactivity limit, days (blank = off)</label>
               <input className="input" id="inactivityDays" name="inactivityDays" type="number" min={1} defaultValue={game.inactivityDays ?? ""} />
+              <p className="mt-1 text-xs text-ink-dim">Can be changed any time. Turning it on mid-game starts everyone&apos;s clock from now.</p>
             </div>
             <label className="flex items-center gap-2 pt-5 text-sm">
               <input type="checkbox" name="showKillerInFeed" value="1" defaultChecked={game.showKillerInFeed} /> Show who made each kill in the public feed

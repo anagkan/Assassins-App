@@ -189,7 +189,7 @@ export function createGame(db: DB, actorId: number | null, name: string, copyFro
   });
 }
 
-export function updateGameSettings(db: DB, actorId: number | null, gameId: number, s: GameSettings) {
+export function updateGameSettings(db: DB, actorId: number | null, gameId: number, s: GameSettings, at = now()) {
   db.transaction((tx) => {
     const game = getGame(tx, gameId);
     if (s.maxTeamSize != null && s.maxTeamSize < 1) throw new GameError("Max team size must be at least 1.");
@@ -208,6 +208,14 @@ export function updateGameSettings(db: DB, actorId: number | null, gameId: numbe
       if (s.randomTeams !== undefined && s.randomTeams !== game.randomTeams) {
         throw new GameError("The team mode can't change after the game has started.");
       }
+    }
+    // Switching the limit on mid-game starts everyone's window now, so time before it
+    // existed doesn't count. While paused, start it at the pause so resume lines it up.
+    if (s.inactivityDays != null && game.inactivityDays == null && (game.status === "active" || game.status === "paused")) {
+      tx.update(teams)
+        .set({ activityAt: game.pausedAt ?? at })
+        .where(and(eq(teams.gameId, gameId), eq(teams.status, "alive")))
+        .run();
     }
     tx.update(games)
       .set({ ...s, name: s.name?.trim() || game.name })

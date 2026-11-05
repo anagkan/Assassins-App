@@ -390,6 +390,29 @@ describe("inactivity", () => {
     expect(G.getInactiveTeams(db, gameId, start + 5 * DAY_MS + 1)).toHaveLength(4);
   });
 
+  it("turning the limit on mid-game starts every clock then, even if paused", () => {
+    const db = freshDb();
+    const { gameId } = setupGame(db, [1, 1, 1, 1]);
+    G.startGame(db, null, gameId);
+    const start = gameRow(db, gameId).startedAt!;
+    G.updateGameSettings(db, 0, gameId, { inactivityDays: 2 }, start + 5 * DAY_MS);
+    expect(G.getInactiveTeams(db, gameId, start + 7 * DAY_MS - 1)).toHaveLength(0);
+    expect(G.getInactiveTeams(db, gameId, start + 7 * DAY_MS + 1)).toHaveLength(4);
+
+    // Changing an existing limit keeps the clocks where they are.
+    G.updateGameSettings(db, 0, gameId, { inactivityDays: 1 }, start + 6 * DAY_MS);
+    expect(G.getInactiveTeams(db, gameId, start + 6 * DAY_MS + 1)).toHaveLength(4);
+
+    // Off, then back on during a pause: the window starts when play resumes.
+    G.updateGameSettings(db, 0, gameId, { inactivityDays: null });
+    expect(G.getInactiveTeams(db, gameId, start + 6 * DAY_MS + 1)).toHaveLength(0);
+    G.pauseGame(db, 0, gameId, start + 10 * DAY_MS);
+    G.updateGameSettings(db, 0, gameId, { inactivityDays: 1 }, start + 11 * DAY_MS);
+    G.resumeGame(db, 0, gameId, start + 12 * DAY_MS);
+    expect(G.getInactiveTeams(db, gameId, start + 13 * DAY_MS - 1)).toHaveLength(0);
+    expect(G.getInactiveTeams(db, gameId, start + 13 * DAY_MS + 1)).toHaveLength(4);
+  });
+
   it("a kill resets the team's window and purge only removes previewed inactive teams", () => {
     const db = freshDb();
     const { gameId } = setupGame(db, [1, 1, 1, 1, 1], { inactivityDays: 1 });
