@@ -68,6 +68,20 @@ export function getCurrentGame(c: Conn): Game | undefined {
   return c.select().from(games).where(eq(games.status, "finished")).orderBy(desc(games.id)).get();
 }
 
+type Viewer = { id: number; isAdmin: boolean };
+
+/** Finished games are only visible to admins and the people who played in them; drafts to nobody here. */
+export function canViewGame(c: Conn, game: Game, user: Viewer): boolean {
+  if (game.status === "draft") return false;
+  return game.status !== "finished" || user.isAdmin || !!getParticipantForUser(c, game.id, user.id);
+}
+
+/** The current game, unless this user isn't allowed to see it. */
+export function getCurrentGameFor(c: Conn, user: Viewer): Game | undefined {
+  const game = getCurrentGame(c);
+  return game && canViewGame(c, game, user) ? game : undefined;
+}
+
 export function getParticipantForUser(c: Conn, gameId: number, userId: number): Participant | undefined {
   return c
     .select()

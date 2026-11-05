@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Empty, PageTitle } from "@/components/ui";
+import { Empty, NotInGame, PageTitle } from "@/components/ui";
 import { renderMarkdown } from "@/lib/markdown";
 import { requireUser } from "@/lib/session";
 import { resolveGame } from "@/lib/viewGame";
@@ -9,9 +9,9 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Rules" };
 
 export default async function RulesPage({ searchParams }: { searchParams: Promise<{ game?: string }> }) {
-  await requireUser();
-  const game = resolveGame((await searchParams).game);
-  if (!game) return <PageTitle>No games yet</PageTitle>;
+  const user = await requireUser();
+  const game = resolveGame(user, (await searchParams).game);
+  if (!game) return <NotInGame />;
   const teamText =
     game.maxTeamSize === 1
       ? "Solo game: every player is on their own."

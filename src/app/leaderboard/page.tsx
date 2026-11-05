@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Empty, PageTitle, StatusPill } from "@/components/ui";
+import { Empty, NotInGame, PageTitle, StatusPill } from "@/components/ui";
 import { getDb } from "@/db";
 import { leaderboard } from "@/lib/queries";
 import { requireUser } from "@/lib/session";
@@ -10,9 +10,9 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Standings" };
 
 export default async function LeaderboardPage({ searchParams }: { searchParams: Promise<{ game?: string }> }) {
-  await requireUser();
-  const game = resolveGame((await searchParams).game);
-  if (!game) return <PageTitle>No games yet</PageTitle>;
+  const user = await requireUser();
+  const game = resolveGame(user, (await searchParams).game);
+  if (!game) return <NotInGame />;
   const { teamRows, players } = leaderboard(getDb(), game.id);
   const solo = teamRows.every((t) => t.size <= 1);
   const topPlayers = players.filter((p) => p.kills > 0);

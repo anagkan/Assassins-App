@@ -4,6 +4,7 @@ import { desc, inArray } from "drizzle-orm";
 import { Empty, PageTitle, StatusPill, fmtDate } from "@/components/ui";
 import { getDb } from "@/db";
 import { games } from "@/db/schema";
+import { canViewGame } from "@/lib/game";
 import { gameStats, teamWithMembers } from "@/lib/queries";
 import { requireUser } from "@/lib/session";
 
@@ -12,14 +13,20 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "History" };
 
 export default async function HistoryPage() {
-  await requireUser();
+  const user = await requireUser();
   const db = getDb();
-  const all = db.select().from(games).where(inArray(games.status, ["registration", "active", "paused", "finished"])).orderBy(desc(games.id)).all();
+  const all = db
+    .select()
+    .from(games)
+    .where(inArray(games.status, ["registration", "active", "paused", "finished"]))
+    .orderBy(desc(games.id))
+    .all()
+    .filter((g) => canViewGame(db, g, user));
   return (
     <>
-      <PageTitle sub="Every game the club has played.">Hall of fame</PageTitle>
+      <PageTitle sub={user.isAdmin ? "Every game the club has played." : "Open games and the ones you've played in."}>Hall of fame</PageTitle>
       {all.length === 0 ? (
-        <Empty>No games yet.</Empty>
+        <Empty>{user.isAdmin ? "No games yet." : "You haven't played in any games yet."}</Empty>
       ) : (
         <ul className="space-y-3">
           {all.map((g) => {

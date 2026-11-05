@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ConfirmButton } from "@/components/confirm";
 import { ShareCode } from "@/components/ShareCode";
 import { Flash } from "@/components/Flash";
-import { Avatar, PageTitle, StatusPill, fmtDate, fmtDuration, fmtRelative } from "@/components/ui";
+import { Avatar, NotInGame, PageTitle, StatusPill, fmtDate, fmtDuration, fmtRelative } from "@/components/ui";
 import { getDb } from "@/db";
 import type { Announcement, Game } from "@/db/schema";
 import { getCurrentGame } from "@/lib/game";
@@ -45,6 +45,17 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
   }
 
   const data = dashboard(db, game, user.id);
+
+  // With nothing open, a finished game is only worth showing to the people who played in it.
+  if (game.status === "finished" && !data.me && !user.isAdmin) {
+    return (
+      <>
+        <Flash />
+        <NotInGame />
+      </>
+    );
+  }
+
   const stats = gameStats(db, game.id);
   // Immunity notices mean nothing once the game is over.
   const notices = activeAnnouncements(db, game.id).filter((a) => game.status !== "finished" || a.kind !== "immunity");

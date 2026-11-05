@@ -11,6 +11,11 @@ export function PageTitle({ children, sub }: { children: ReactNode; sub?: ReactN
   );
 }
 
+/** What players see when no game is open and they weren't in the last one. */
+export function NotInGame() {
+  return <PageTitle sub="Check back when the officers announce the next round.">You are not currently in a game</PageTitle>;
+}
+
 export function Avatar({ name, size = 48, dead }: { name: string; size?: number; dead?: boolean }) {
   const initials = name
     .split(/\s+/)
