@@ -34,7 +34,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </Link>
             {user && (
               <nav aria-label="Main" className="ml-auto hidden items-center gap-3 text-sm text-ink-dim sm:flex">
-                <NavLink href="/feed" className="hover:text-ink aria-[current=page]:text-ink">Feed</NavLink>
+                <NavLink href="/" className="hover:text-ink aria-[current=page]:text-ink">Home</NavLink>
+                <NavLink href="/feed"className="hover:text-ink aria-[current=page]:text-ink">Feed</NavLink>
                 <NavLink href="/leaderboard" className="hover:text-ink aria-[current=page]:text-ink">Standings</NavLink>
                 <NavLink href="/rules" className="hover:text-ink aria-[current=page]:text-ink">Rules</NavLink>
                 <NavLink href="/history" className="hover:text-ink aria-[current=page]:text-ink">History</NavLink>
