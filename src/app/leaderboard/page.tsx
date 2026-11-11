@@ -32,9 +32,21 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                   <tr><th>Team</th><th>Alive</th><th>Kills</th><th><span className="sr-only">Status</span></th></tr>
                 </thead>
                 <tbody>
-                  {teamRows.map(({ team, size, alive }) => (
+                  {teamRows.map(({ team, members, size, alive }) => (
                     <tr key={team.id} className={team.status !== "alive" ? "text-ink-dim" : ""}>
-                      <td>{team.name}{game.winnerTeamId === team.id && <span className="pill chip-ok ml-2">winner</span>}</td>
+                      <td>
+                        <div>{team.name}{game.winnerTeamId === team.id && <span className="pill chip-ok ml-2">winner</span>}</div>
+                        {members.length > 0 && (
+                          <div className="mt-0.5 text-xs text-ink-dim">
+                            {members.map((m, i) => (
+                              <span key={m.participantId}>
+                                {i > 0 && ", "}
+                                <span className={m.status !== "alive" ? "line-through" : ""}>{m.displayName}</span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </td>
                       <td>{alive}/{size}</td>
                       <td>{team.kills}</td>
                       <td>{team.status !== "alive" && <StatusPill status={team.status} />}</td>

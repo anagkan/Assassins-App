@@ -244,7 +244,7 @@ export function leaderboard(db: DB, gameId: number) {
   const teamRows = allTeams
     .map((t) => {
       const ms = members.get(t.id) ?? [];
-      return { team: t, size: ms.length, alive: ms.filter((m) => m.status === "alive").length };
+      return { team: t, members: ms, size: ms.length, alive: ms.filter((m) => m.status === "alive").length };
     })
     .sort(
       (a, b) =>
