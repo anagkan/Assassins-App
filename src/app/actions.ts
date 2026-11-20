@@ -128,21 +128,40 @@ export async function renameMyTeamAction(fd: FormData) {
   }, "Team renamed.");
 }
 
+/** The kill form's "When" box; blank means now. */
+function occurredAt(fd: FormData): number {
+  const when = str(fd, "occurredAt");
+  const at = when ? new Date(when).getTime() : Date.now();
+  if (!Number.isFinite(at) || at > Date.now() + 5 * 60_000) throw new G.GameError("Invalid time.");
+  return at;
+}
+
 export async function submitKillAction(fd: FormData) {
   const user = await requireUser();
   await act(
     "/",
     () => {
-      const when = str(fd, "occurredAt");
-      const occurredAt = when ? new Date(when).getTime() : Date.now();
-      if (!Number.isFinite(occurredAt) || occurredAt > Date.now() + 5 * 60_000) throw new G.GameError("Invalid time.");
       return G.submitKill(getDb(), int(fd, "gameId"), user.id, int(fd, "victimId"), {
-        occurredAt,
+        occurredAt: occurredAt(fd),
         location: str(fd, "location"),
         description: str(fd, "description"),
       });
     },
     "Kill reported! Your target can confirm it on their dashboard; otherwise an admin will review it.",
+  );
+}
+
+export async function submitCounterKillAction(fd: FormData) {
+  const user = await requireUser();
+  await act(
+    "/",
+    () =>
+      G.submitCounterKill(getDb(), int(fd, "gameId"), user.id, str(fd, "assassinName"), {
+        occurredAt: occurredAt(fd),
+        location: str(fd, "location"),
+        description: str(fd, "description"),
+      }),
+    "Kill reported! The player you named can confirm it on their dashboard; otherwise an admin will review it.",
   );
 }
 

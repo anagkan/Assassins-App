@@ -35,6 +35,11 @@ export default async function RulesPage({ searchParams }: { searchParams: Promis
           ) : (
             <Empty>None posted.</Empty>
           )}
+          {game.counterKills && (
+            <p className="mt-4 border-t border-line pt-3 text-sm text-ink-dim">
+              Self-defence: you may also take out {game.maxTeamSize === 1 ? "the player hunting you" : "anyone on the team hunting yours"}. Report it under &ldquo;Killed your assassin?&rdquo; on your dashboard.
+            </p>
+          )}
           {game.inactivityDays && (
             <p className="mt-4 border-t border-line pt-3 text-sm text-ink-dim">
               Inactivity: {game.maxTeamSize === 1 ? "players" : "teams"} without a kill for {game.inactivityDays} day

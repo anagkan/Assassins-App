@@ -26,6 +26,7 @@ export const AUDIT_ACTIONS: Record<string, string> = {
   "team.leave": "Team left",
   "team.rename": "Team renamed",
   "kill.submit": "Kill reported",
+  "kill.counter_miss": "Wrong assassin named",
   "kill.confirm": "Kill confirmed by victim",
   "kill.dispute": "Kill disputed by victim",
   "kill.approve": "Kill approved",
@@ -196,7 +197,9 @@ export function describeAudit({ action, payload: p, actor, actorUserId }: AuditE
     case "team.rename":
       return `${a} renamed a team to ${quoted("name")}.`;
     case "kill.submit":
-      return `${a} reported killing ${player("victimId")}.`;
+      return `${a} reported killing ${player("victimId")}${p.counter ? ", who was hunting them" : ""}.`;
+    case "kill.counter_miss":
+      return `${a} named ${quoted("name")} as their assassin, but that player wasn't hunting them.`;
     case "kill.confirm": {
       const r = n.report(p.reportId);
       return `${a} confirmed ${r ? `${r.killer}'s kill on them` : `report #${p.reportId}`}.`;

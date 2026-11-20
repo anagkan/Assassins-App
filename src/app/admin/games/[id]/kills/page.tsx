@@ -54,6 +54,7 @@ export default async function KillQueue({ params }: { params: Promise<{ id: stri
                 <div className="min-w-0 flex-1">
                   <p>
                     <b>{r.killer}</b>{team(r.killerTeam, r.killer)} <span className="text-stop-ink">eliminated</span> <b>{r.victim}</b>{team(r.victimTeam, r.victim)}
+                    {r.counterKill && <span className="pill chip-info ml-2 align-middle text-xs" title="The victim was hunting the killer, not the other way round.">killed their assassin</span>}
                   </p>
                   <p className="text-xs text-ink-dim">
                     Happened {fmtDate(r.occurredAt)}{r.location && <> at {r.location}</>} · confirmed {fmtDate(r.victimRespondedAt ?? r.reviewedAt ?? r.createdAt)}
@@ -83,6 +84,7 @@ export default async function KillQueue({ params }: { params: Promise<{ id: stri
             <div key={r.id} className={`card space-y-2 ${r.problem ? "border-warn-ink" : "border-line"}`}>
               <p className="text-lg">
                 <b>{r.killer}</b>{team(r.killerTeam, r.killer)} <span className="text-stop-ink">eliminated</span> <b>{r.victim}</b>{team(r.victimTeam, r.victim)}
+                {r.counterKill && <span className="pill chip-info ml-2 align-middle text-xs" title="The victim was hunting the killer, not the other way round.">killed their assassin</span>}
               </p>
               <p className="text-xs text-ink-dim">
                 Happened {fmtDate(r.occurredAt)}{r.location && <> at {r.location}</>} · reported {fmtDate(r.createdAt)}, {fmtDuration(r.createdAt - r.occurredAt)} later
@@ -134,7 +136,7 @@ export default async function KillQueue({ params }: { params: Promise<{ id: stri
               {history.map((r) => (
                 <tr key={r.id}>
                   <td><StatusPill status={r.status} /></td>
-                  <td>{r.killer} → {r.victim}</td>
+                  <td>{r.killer} → {r.victim}{r.counterKill && <span className="text-ink-dim"> (their assassin)</span>}</td>
                   <td className="whitespace-nowrap text-ink-dim">{fmtDate(r.occurredAt)}</td>
                   <td className="text-ink-dim" title={r.victimNote ?? undefined}>{r.victimResponse ?? ""}</td>
                   <td className="text-ink-dim">{r.adminNote}</td>

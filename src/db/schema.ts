@@ -47,6 +47,8 @@ export const games = sqliteTable("games", {
   safeZonesMarkdown: text("safe_zones_markdown").notNull().default(""),
   inactivityDays: integer("inactivity_days"), // null = no inactivity deadline
   showKillerInFeed: integer("show_killer_in_feed", { mode: "boolean" }).notNull().default(true),
+  // Players may also kill whoever is hunting them, by naming them on the dashboard.
+  counterKills: integer("counter_kills", { mode: "boolean" }).notNull().default(false),
   pausedAt: integer("paused_at"),
   pausedDurationMs: integer("paused_duration_ms").notNull().default(0),
   createdAt: integer("created_at").notNull(),
@@ -122,6 +124,8 @@ export const killReports = sqliteTable(
     location: text("location").notNull().default(""),
     description: text("description").notNull().default(""),
     status: text("status", { enum: REPORT_STATUSES }).notNull().default("pending"),
+    // The victim was on the team hunting the assassin, rather than the assassin's target.
+    counterKill: integer("counter_kill", { mode: "boolean" }).notNull().default(false),
     createdAt: integer("created_at").notNull(),
     reviewedBy: integer("reviewed_by"),
     reviewedAt: integer("reviewed_at"),

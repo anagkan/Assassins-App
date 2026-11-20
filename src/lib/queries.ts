@@ -78,6 +78,7 @@ export function dashboard(db: DB, game: Game, userId: number) {
           createdAt: killReports.createdAt,
           adminNote: killReports.adminNote,
           victimResponse: killReports.victimResponse,
+          counterKill: killReports.counterKill,
           assassinId: killReports.assassinId,
           assassinName: assassinU.displayName,
           victimId: killReports.victimId,
@@ -102,6 +103,7 @@ export function dashboard(db: DB, game: Game, userId: number) {
       location: killReports.location,
       description: killReports.description,
       victimResponse: killReports.victimResponse,
+      counterKill: killReports.counterKill,
       assassinName: assassinU.displayName,
     })
     .from(killReports)
@@ -380,6 +382,7 @@ export function reportRows(db: DB, gameId: number, status?: "pending" | "approve
       victimNote: killReports.victimNote,
       victimRespondedAt: killReports.victimRespondedAt,
       adminSeenAt: killReports.adminSeenAt,
+      counterKill: killReports.counterKill,
       assassinId: killReports.assassinId,
       killer: killerU.displayName,
       killerTeamId: killerP.teamId,

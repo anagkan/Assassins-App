@@ -59,6 +59,7 @@ export async function updateSettingsAction(fd: FormData) {
         safeZonesMarkdown: str(fd, "safeZonesMarkdown"),
         inactivityDays: optInt(fd, "inactivityDays"),
         showKillerInFeed: str(fd, "showKillerInFeed") === "1",
+        counterKills: str(fd, "counterKills") === "1",
       };
       if (fd.has("teamMode")) {
         settings.maxTeamSize = mode === "solo" ? 1 : optInt(fd, "maxTeamSize");

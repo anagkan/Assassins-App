@@ -5,7 +5,7 @@ import { Flash } from "@/components/Flash";
 import { Avatar, NotInGame, PageTitle, StatusPill, fmtDate, fmtDuration, fmtRelative } from "@/components/ui";
 import { getDb } from "@/db";
 import type { Announcement, Game } from "@/db/schema";
-import { getCurrentGame } from "@/lib/game";
+import { COUNTER_KILL_MISSES_PER_DAY, getCurrentGame } from "@/lib/game";
 import { readInvite, type Invite } from "@/lib/invite";
 import { activeAnnouncements, dashboard, gameStats, teamWithMembers, type Member } from "@/lib/queries";
 import { requireUser } from "@/lib/session";
@@ -17,6 +17,7 @@ import {
   leaveTeamAction,
   renameMyTeamAction,
   respondToKillAction,
+  submitCounterKillAction,
   submitKillAction,
   withdrawKillAction,
 } from "./actions";
@@ -341,7 +342,7 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
   return (
     <div className="grid gap-4 md:grid-cols-5">
       <div className="space-y-4 md:col-span-3">
-        {iAmAlive && againstMe.map((r) => <KillClaim key={r.id} report={r} />)}
+        {iAmAlive && againstMe.map((r) => <KillClaim key={r.id} report={r} solo={solo} />)}
 
         {!teamAlive ? (
           <div className="rounded-lg bg-stop px-5 py-6 text-center text-stop-ink">
@@ -399,23 +400,11 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
                 ))}
               </select>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label className="label" htmlFor="occurredAt">When</label>
-                <input className="input" id="occurredAt" name="occurredAt" type="datetime-local" />
-              </div>
-              <div>
-                <label className="label" htmlFor="location">Where</label>
-                <input className="input" id="location" name="location" maxLength={200} placeholder="e.g. Colonial front lawn" />
-              </div>
-            </div>
-            <div>
-              <label className="label" htmlFor="description">How it went down</label>
-              <textarea className="input" id="description" name="description" rows={3} maxLength={1000} placeholder="Witnesses help the admins verify." />
-            </div>
+            <KillDetailFields idPrefix="" />
             <button className="btn btn-primary">Submit report</button>
           </form>
         )}
+        {teamAlive && iAmAlive && game.counterKills && game.status === "active" && <CounterKillForm gameId={game.id} solo={solo} />}
         {teamAlive && !iAmAlive && (
           <div className="card space-y-1">
             {out && <p><HowIWentOut out={out} /></p>}
@@ -443,6 +432,7 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
                   <span>
                     {!solo && <>{r.assassinName} → </>}
                     {r.victimName}
+                    {r.counterKill && <span className="text-ink-dim"> (assassin)</span>}
                   </span>
                   {r.victimResponse === "confirmed" && <span className="text-xs text-ink-dim">confirmed by {r.victimName}</span>}
                   {r.victimResponse === "disputed" && r.status === "pending" && (
@@ -487,6 +477,50 @@ function PlayingPanel({ game, data }: { game: Game; data: ReturnType<typeof dash
   );
 }
 
+/** When, where and how, shared by both kill forms. `idPrefix` keeps the ids unique when both are on the page. */
+function KillDetailFields({ idPrefix }: { idPrefix: string }) {
+  const id = (name: string) => (idPrefix ? `${idPrefix}-${name}` : name);
+  return (
+    <>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label className="label" htmlFor={id("occurredAt")}>When</label>
+          <input className="input" id={id("occurredAt")} name="occurredAt" type="datetime-local" />
+        </div>
+        <div>
+          <label className="label" htmlFor={id("location")}>Where</label>
+          <input className="input" id={id("location")} name="location" maxLength={200} placeholder="e.g. Colonial front lawn" />
+        </div>
+      </div>
+      <div>
+        <label className="label" htmlFor={id("description")}>How it went down</label>
+        <textarea className="input" id={id("description")} name="description" rows={3} maxLength={1000} placeholder="Witnesses help the admins verify." />
+      </div>
+    </>
+  );
+}
+
+/** Report killing the player hunting you. You type their name, so the page never reveals who that is. */
+function CounterKillForm({ gameId, solo }: { gameId: number; solo: boolean }) {
+  return (
+    <form action={submitCounterKillAction} className="card space-y-3">
+      <h2 className="h-display text-xl">Killed your assassin?</h2>
+      <p className="text-sm text-ink-dim">
+        In this game you can also take out {solo ? "the player hunting you" : "anyone on the team hunting yours"}. Type their full name exactly as it appears on the{" "}
+        <Link href="/leaderboard" className="text-accent underline">Standings</Link> page. If they really were hunting you, they and the admins
+        get the usual kill report. If not, nothing is sent; after {COUNTER_KILL_MISSES_PER_DAY} wrong names this form locks for 24 hours.
+      </p>
+      <input type="hidden" name="gameId" value={gameId} />
+      <div>
+        <label className="label" htmlFor="counter-assassinName">Your assassin&apos;s full name</label>
+        <input className="input" id="counter-assassinName" name="assassinName" maxLength={100} required autoComplete="off" placeholder="First Last" />
+      </div>
+      <KillDetailFields idPrefix="counter" />
+      <button className="btn btn-primary">Submit report</button>
+    </form>
+  );
+}
+
 type Out = NonNullable<Extract<ReturnType<typeof dashboard>, { out: unknown }>["out"]>;
 
 function HowIWentOut({ out }: { out: Out }) {
@@ -523,12 +557,12 @@ function OutStats({ out }: { out: Out }) {
 
 type Claim = Extract<ReturnType<typeof dashboard>, { againstMe: unknown }>["againstMe"][number];
 
-function KillClaim({ report: r }: { report: Claim }) {
+function KillClaim({ report: r, solo }: { report: Claim; solo: boolean }) {
   return (
     <div className="card space-y-3 border-warn-ink">
       <div className="label text-stop-ink">Were you taken out?</div>
       <p className="text-lg">
-        <b>{r.assassinName}</b> says they got you {fmtRelative(r.occurredAt)}
+        <b>{r.assassinName}</b>{r.counterKill && <>, {solo ? "who you were hunting" : "from the team you were hunting"},</>} says they got you {fmtRelative(r.occurredAt)}
         {r.location && <> at {r.location}</>}.
       </p>
       {r.description && <p className="whitespace-pre-line rounded-sm bg-surface-sunken p-3 text-sm">{r.description}</p>}

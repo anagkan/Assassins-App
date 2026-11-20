@@ -5,7 +5,7 @@ import { ShareCode } from "@/components/ShareCode";
 import { getDb } from "@/db";
 import { teams } from "@/db/schema";
 import { DEFAULT_RULES, DEFAULT_SAFE_ZONES } from "@/lib/defaults";
-import { checkRing, startChecklist } from "@/lib/game";
+import { COUNTER_KILL_MISSES_PER_DAY, checkRing, startChecklist } from "@/lib/game";
 import { gameStats } from "@/lib/queries";
 import { gameStatusAction, updateSettingsAction } from "../../actions";
 import { GameHeader, gameMetadata, loadGame } from "../../GameHeader";
@@ -154,6 +154,14 @@ export default async function GameOverview({ params }: { params: Promise<{ id: s
             <label className="flex items-center gap-2 pt-5 text-sm">
               <input type="checkbox" name="showKillerInFeed" value="1" defaultChecked={game.showKillerInFeed} /> Show who made each kill in the public feed
             </label>
+          </div>
+          <div>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="counterKills" value="1" defaultChecked={game.counterKills} /> Players can kill their assassin too
+            </label>
+            <p className="mt-1 text-xs text-ink-dim">
+              Adds a &ldquo;Killed your assassin?&rdquo; form to players&apos; dashboards. They type the full name of the player hunting them; if it&apos;s right, that player gets the usual kill report to confirm or dispute, and it lands in the kill queue. Wrong names send nothing, and after {COUNTER_KILL_MISSES_PER_DAY} in 24 hours the form locks so it can&apos;t be used to guess who&apos;s hunting them. Can be changed any time; turning it off doesn&apos;t cancel reports already sent.
+            </p>
           </div>
           <div>
             <label className="label" htmlFor="rulesMarkdown">Rules (Markdown)</label>

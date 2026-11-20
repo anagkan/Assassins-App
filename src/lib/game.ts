@@ -1,5 +1,5 @@
 import { randomInt } from "node:crypto";
-import { and, desc, eq, inArray, isNull, ne } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNotNull, isNull, ne } from "drizzle-orm";
 import type { DB } from "@/db";
 import {
   auditLog,
@@ -15,6 +15,7 @@ import {
 } from "@/db/schema";
 import { DEFAULT_RULES, DEFAULT_SAFE_ZONES } from "./defaults";
 import {
+  DAY_MS,
   buildRing,
   groupIntoTeams,
   inactivityDeadline,
@@ -162,6 +163,7 @@ export interface GameSettings {
   safeZonesMarkdown?: string;
   inactivityDays?: number | null;
   showKillerInFeed?: boolean;
+  counterKills?: boolean;
 }
 
 export function createGame(db: DB, actorId: number | null, name: string, copyFromGameId?: number): Game {
@@ -181,6 +183,7 @@ export function createGame(db: DB, actorId: number | null, name: string, copyFro
         safeZonesMarkdown: src?.safeZonesMarkdown || DEFAULT_SAFE_ZONES,
         inactivityDays: src?.inactivityDays ?? null,
         showKillerInFeed: src?.showKillerInFeed ?? true,
+        counterKills: src?.counterKills ?? false,
       })
       .returning()
       .get();
@@ -655,6 +658,119 @@ export function submitKill(db: DB, gameId: number, userId: number, victimId: num
   });
 }
 
+/** How many players someone can wrongly name as their assassin in 24 hours, so the form can't be used to find them out. */
+export const COUNTER_KILL_MISSES_PER_DAY = 3;
+
+/** A typed name, ignoring case, extra spaces and curly apostrophes, to compare with display names. */
+export function nameKey(name: string): string {
+  return name.normalize("NFKC").replace(/[\u2018\u2019`]/g, "'").trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+/** When this player wrongly named someone as their assassin in the last 24 hours, oldest first. */
+function counterKillMisses(c: Conn, gameId: number, userId: number, at: number): number[] {
+  return c
+    .select({ at: auditLog.createdAt })
+    .from(auditLog)
+    .where(
+      and(
+        eq(auditLog.gameId, gameId),
+        eq(auditLog.actorUserId, userId),
+        eq(auditLog.action, "kill.counter_miss"),
+        gt(auditLog.createdAt, at - DAY_MS),
+      ),
+    )
+    .all()
+    .map((r) => r.at)
+    .sort((a, b) => a - b);
+}
+
+/**
+ * A player reports killing someone on the team hunting them, named by typing their full name
+ * so the page never has to show who that is. Naming a player who isn't hunting them sends
+ * nothing and counts against a daily limit, so guessing can't reveal who their assassin is.
+ */
+export function submitCounterKill(db: DB, gameId: number, userId: number, assassinName: string, d: KillDetails = {}, at = now()) {
+  const result = db.transaction((tx) => {
+    const game = getGame(tx, gameId);
+    if (game.status !== "active") throw new GameError("Kills can only be reported while the game is active.");
+    if (!game.counterKills) throw new GameError("Killing your assassin isn't allowed in this game.");
+    const me = getParticipantForUser(tx, gameId, userId);
+    if (!me || me.status !== "alive" || me.teamId == null) throw new GameError("You're not an alive player in this game.");
+    const myTeam = getTeam(tx, me.teamId);
+    if (myTeam.status !== "alive") throw new GameError("You're not an alive player in this game.");
+
+    const misses = counterKillMisses(tx, gameId, userId, at);
+    if (misses.length >= COUNTER_KILL_MISSES_PER_DAY) {
+      const hours = Math.max(1, Math.ceil((misses[0] + DAY_MS - at) / 3_600_000));
+      throw new GameError(
+        `You've named ${COUNTER_KILL_MISSES_PER_DAY} players who weren't hunting you in the last 24 hours. ` +
+          `You can try again in about ${hours} hour${hours === 1 ? "" : "s"}, or ask an admin.`,
+      );
+    }
+
+    const typed = nameKey(assassinName);
+    if (!typed) throw new GameError("Type the full name of the player who was hunting you.");
+    const named = tx
+      .select({ p: participants, name: users.displayName })
+      .from(participants)
+      .innerJoin(users, eq(users.id, participants.userId))
+      .where(and(eq(participants.gameId, gameId), isNotNull(participants.teamId)))
+      .all()
+      .filter((r) => nameKey(r.name) === typed);
+    // None of these say anything the Standings page doesn't already show, so they don't count as misses.
+    if (!named.length) {
+      throw new GameError(`Nobody in this game is called "${assassinName.trim().slice(0, 60)}". Type the full name exactly as it appears on the Standings page.`);
+    }
+    const alive = named.filter((r) => r.p.status === "alive");
+    if (!alive.length) throw new GameError(`${named[0].name} is already out.`);
+    // Your target is no secret to you. (With two teams left, your target is also your hunter.)
+    const target = alive.find((r) => r.p.teamId === myTeam.targetTeamId);
+    if (target && getTeam(tx, target.p.teamId!).targetTeamId !== myTeam.id) {
+      throw new GameError(`${target.name} is your target. Report them under "Report a kill" instead.`);
+    }
+
+    const hunter = alive.find((r) => {
+      const t = getTeam(tx, r.p.teamId!);
+      return t.status === "alive" && t.targetTeamId === myTeam.id;
+    });
+    if (!hunter) return { miss: alive[0].name, missesBefore: misses.length };
+
+    const dup = tx
+      .select()
+      .from(killReports)
+      .where(and(eq(killReports.victimId, hunter.p.id), eq(killReports.status, "pending")))
+      .get();
+    if (dup) throw new GameError("A kill on that player is already waiting for review.");
+    const report = tx
+      .insert(killReports)
+      .values({
+        gameId,
+        assassinId: me.id,
+        victimId: hunter.p.id,
+        counterKill: true,
+        occurredAt: d.occurredAt ?? at,
+        location: (d.location ?? "").slice(0, 200),
+        description: (d.description ?? "").slice(0, 1000),
+        createdAt: at,
+      })
+      .returning()
+      .get();
+    audit(tx, userId, gameId, "kill.submit", { reportId: report.id, victimId: hunter.p.id, counter: true });
+    return { report };
+  });
+  if ("report" in result) return result.report;
+
+  // Logged outside the transaction above so the miss still counts when we refuse the report.
+  audit(db, userId, gameId, "kill.counter_miss", { name: result.miss });
+  const left = COUNTER_KILL_MISSES_PER_DAY - result.missesBefore - 1;
+  throw new GameError(
+    `${result.miss} isn't hunting you, so no report was sent. ` +
+      (left > 0
+        ? `You can name ${left} more player${left === 1 ? "" : "s"} who ${left === 1 ? "isn't" : "aren't"} hunting you in the next 24 hours before this form locks.`
+        : "That was your last wrong name for the next 24 hours."),
+  );
+}
+
 /** Removes a team from the ring and ends the game if one (or zero) teams remain. */
 function eliminateTeam(
   tx: Tx,
@@ -707,6 +823,13 @@ export function reportProblem(c: Conn, reportId: number): string | null {
   if (a.status !== "alive") return "The assassin is no longer alive.";
   if (v.status !== "alive") return "The victim is already out.";
   const aTeam = a.teamId != null ? getTeam(c, a.teamId) : null;
+  if (r.counterKill) {
+    const vTeam = v.teamId != null ? getTeam(c, v.teamId) : null;
+    if (!aTeam || aTeam.status !== "alive" || !vTeam || vTeam.status !== "alive" || vTeam.targetTeamId !== aTeam.id) {
+      return "The victim's team is no longer hunting the assassin's team.";
+    }
+    return null;
+  }
   if (!aTeam || aTeam.status !== "alive" || aTeam.targetTeamId !== v.teamId) {
     return "The victim's team is no longer the assassin's target.";
   }
@@ -963,7 +1086,16 @@ export function undoKill(db: DB, actorId: number | null, reportId: number) {
     }
     const killer = getParticipant(tx, r.assassinId);
     const killerTeam = killer.teamId != null ? getTeam(tx, killer.teamId) : undefined;
-    const before = killerTeam?.status === "alive" && killerTeam.targetTeamId !== victim.teamId ? killerTeam.targetTeamId : null;
+    // A normal kill's victim team went back in front of the killer's new target; a counter-kill's
+    // victim team was hunting the killer, so it goes back in front of the killer's team.
+    const before =
+      killerTeam?.status !== "alive"
+        ? null
+        : r.counterKill
+          ? killerTeam.id
+          : killerTeam.targetTeamId !== victim.teamId
+            ? killerTeam.targetTeamId
+            : null;
     reviveTx(tx, actorId, victim.id, before ?? undefined);
     audit(tx, actorId, r.gameId, "kill.undo", { reportId });
   });
