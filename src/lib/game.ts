@@ -733,7 +733,7 @@ export function submitCounterKill(db: DB, gameId: number, userId: number, assass
       const t = getTeam(tx, r.p.teamId!);
       return t.status === "alive" && t.targetTeamId === myTeam.id;
     });
-    if (!hunter) return { miss: alive[0].name, missesBefore: misses.length };
+    if (!hunter) return { ok: false as const, miss: alive[0].name, missesBefore: misses.length };
 
     const dup = tx
       .select()
@@ -756,9 +756,9 @@ export function submitCounterKill(db: DB, gameId: number, userId: number, assass
       .returning()
       .get();
     audit(tx, userId, gameId, "kill.submit", { reportId: report.id, victimId: hunter.p.id, counter: true });
-    return { report };
+    return { ok: true as const, report };
   });
-  if ("report" in result) return result.report;
+  if (result.ok) return result.report;
 
   // Logged outside the transaction above so the miss still counts when we refuse the report.
   audit(db, userId, gameId, "kill.counter_miss", { name: result.miss });
